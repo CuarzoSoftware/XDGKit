@@ -8,17 +8,11 @@ namespace XDG
     class XDGIconTheme;
     class XDGIconDirectory;
 
-    enum class IconSizeType
+    enum class IconExtension
     {
-        Fixed,
-        Scalable,
-        Threshold
-    };
-
-    enum class DirectoryType
-    {
-        Normal,
-        Scaled
+        PNG,
+        SVG,
+        XPM
     };
 };
 

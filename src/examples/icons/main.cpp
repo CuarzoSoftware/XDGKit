@@ -23,14 +23,45 @@ int main()
         std::cout << " - NAME: " << theme.first.c_str() << "\n";
         std::cout << "   VISIBLE NAME: " << theme.second.visibleName() << "\n";
         std::cout << "   COMMENT: " << theme.second.comment() << "\n";
-        std::cout << "   INHERITS: " << theme.second.inherits() << "\n";
+        std::cout << "   INHERITS: [";
+        for (const auto &inh : theme.second.inherits())
+            std::cout << inh << ", ";
+        std::cout << "]\n";
         std::cout << "   HIDDEN: " << theme.second.hidden() << "\n";
         std::cout << "   EXAMPLE: " << theme.second.example() << "\n";
         std::cout << "   INDEX: " << theme.second.indexFilePath().c_str() << "\n";
-        std::cout << "   DIRS: ";
+        std::cout << "   THEME DIRS: ";
         for (auto &dir : theme.second.dirs())
             std::cout << dir.c_str() << ":";
         std::cout << std::endl;
+
+        std::cout << "   NORMAL ICON DIRS:\n";
+        for (auto &dir : theme.second.iconDirectories())
+        {
+            std::cout << "      Scale:" << dir.scale()
+                      << " Size:" << dir.size()
+                      << " MinSize:" << dir.minSize()
+                      << " MaxSize:" << dir.maxSize()
+                      << " Type:" << dir.type()
+                      << " SizeType:" << dir.sizeType()
+                      << " Context:" << dir.context()
+                      << " Threshold:" << dir.threshold()
+                      << " Dir:" << dir.dir() << "\n";
+        }
+
+        std::cout << "   SCALED ICON DIRS:\n";
+        for (auto &dir : theme.second.scaledIconDirectories())
+        {
+            std::cout << "      Scale:" << dir.scale()
+                      << " Size:" << dir.size()
+                      << " MinSize:" << dir.minSize()
+                      << " MaxSize:" << dir.maxSize()
+                      << " Type:" << dir.type()
+                      << " SizeType:" << dir.sizeType()
+                      << " Context:" << dir.context()
+                      << " Threshold:" << dir.threshold()
+                      << " Dir:" << dir.dir() << "\n";
+        }
     }
 
 
