@@ -7,13 +7,9 @@ namespace XDG
     class XDGIconThemeManager;
     class XDGIconTheme;
     class XDGIconDirectory;
-
-    enum class IconExtension
-    {
-        PNG,
-        SVG,
-        XPM
-    };
+    class XDGIcon;
+    struct XDGIRect;
+    struct XDGIPoint;
 };
 
 #endif // XDGNAMESPACE_H

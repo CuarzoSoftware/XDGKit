@@ -5,65 +5,49 @@ using namespace XDG;
 
 int main()
 {
-    auto kit = XDGKit::Get();
+    size_t themesN = 0;
+    size_t dirsN = 0;
+    size_t iconsN = 0;
 
-    std::cout << "HOME: " << kit->homeDir().c_str() << "\n";
+    auto start = std::chrono::high_resolution_clock::now();
+    auto kit = XDGKit::Make();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-    std::cout << "XDG_DATA_DIRS:\n";
-    for (auto &dir : kit->dataDirs())
-        std::cout << " - " << dir.c_str() << "\n";
+    themesN = kit->iconThemeManager().themes().size();
 
-    std::cout << "ICON THEMES SEARCH DIRS:\n";
-    for (auto &dir : kit->iconThemeManager().searchDirs())
-        std::cout << " - " << dir.c_str() << "\n";
-
-    std::cout << "FOUND THEMES:\n";
-    for (auto &theme : kit->iconThemeManager().themes())
+    for (auto const &theme : kit->iconThemeManager().themes())
     {
-        std::cout << " - NAME: " << theme.first.c_str() << "\n";
-        std::cout << "   VISIBLE NAME: " << theme.second.visibleName() << "\n";
-        std::cout << "   COMMENT: " << theme.second.comment() << "\n";
-        std::cout << "   INHERITS: [";
-        for (const auto &inh : theme.second.inherits())
-            std::cout << inh << ", ";
-        std::cout << "]\n";
-        std::cout << "   HIDDEN: " << theme.second.hidden() << "\n";
-        std::cout << "   EXAMPLE: " << theme.second.example() << "\n";
-        std::cout << "   INDEX: " << theme.second.indexFilePath().c_str() << "\n";
-        std::cout << "   THEME DIRS: ";
-        for (auto &dir : theme.second.dirs())
-            std::cout << dir.c_str() << ":";
-        std::cout << std::endl;
+        dirsN += theme.second.iconDirectories().size() + theme.second.scaledIconDirectories().size();
 
-        std::cout << "   NORMAL ICON DIRS:\n";
-        for (auto &dir : theme.second.iconDirectories())
-        {
-            std::cout << "      Scale:" << dir.scale()
-                      << " Size:" << dir.size()
-                      << " MinSize:" << dir.minSize()
-                      << " MaxSize:" << dir.maxSize()
-                      << " Type:" << dir.type()
-                      << " SizeType:" << dir.sizeType()
-                      << " Context:" << dir.context()
-                      << " Threshold:" << dir.threshold()
-                      << " Dir:" << dir.dir() << "\n";
-        }
+        for (const auto &dir : theme.second.iconDirectories())
+            iconsN += dir.icons().size();
 
-        std::cout << "   SCALED ICON DIRS:\n";
-        for (auto &dir : theme.second.scaledIconDirectories())
-        {
-            std::cout << "      Scale:" << dir.scale()
-                      << " Size:" << dir.size()
-                      << " MinSize:" << dir.minSize()
-                      << " MaxSize:" << dir.maxSize()
-                      << " Type:" << dir.type()
-                      << " SizeType:" << dir.sizeType()
-                      << " Context:" << dir.context()
-                      << " Threshold:" << dir.threshold()
-                      << " Dir:" << dir.dir() << "\n";
-        }
+        for (const auto &dir : theme.second.scaledIconDirectories())
+            iconsN += dir.icons().size();
     }
 
+    std::cout << duration.count() << " ms to index " << themesN << " themes " << dirsN << " icon dirs " << iconsN << " icons." << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    const XDGIcon *firefox { kit->iconThemeManager().findIcon("firefox", 512, 2, XDGIcon::PNG | XDGIcon::SVG) };
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+    std::cout << duration.count() << " ms to find icon." << std::endl;
+
+    if (firefox)
+    {
+        std::cout << firefox->directory().theme().name() << ":firefox " << firefox->directory().size() << "@" << firefox->directory().scale() << std::endl;
+
+        if (firefox->extensions() & XDGIcon::PNG)
+            std::cout << "PNG PATH: " << firefox->getPath(XDGIcon::PNG) << std::endl;
+
+        if (firefox->extensions() & XDGIcon::SVG)
+            std::cout << "SVG PATH: " << firefox->getPath(XDGIcon::SVG) << std::endl;
+    }
+    else
+        std::cout << "Could not find an icon named 'firefox'." << std::endl;
 
     return 0;
 }

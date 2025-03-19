@@ -25,6 +25,9 @@ namespace XDG
      */
     typedef std::unordered_map<std::string,std::unordered_map<std::string, std::string>> XDGINI;
 
+    /**
+     * @brief Utilities for file parsing and handling data structures.
+     */
     namespace XDGParsers
     {
         /**
@@ -33,10 +36,16 @@ namespace XDG
          * @param iniFile The path to the INI file to be loaded and parsed.
          *
          * @return Always returns a valid pointer to an XDGINI object. The returned pointer may reference
-         *         an empty object if errors occur.
+         *         an empty object if an error occurs.
          */
         std::shared_ptr<XDGINI> ParseINI(const std::filesystem::path &iniFile) noexcept;
 
+        /**
+         * @brief Removes leading and trailing whitespace from a string.
+         *
+         * @param str The input string to be trimmed.
+         * @return A new string with leading and trailing spaces removed.
+         */
         inline std::string trimString(const std::string &str) noexcept
         {
             const size_t start { str.find_first_not_of(" \t") };
@@ -44,8 +53,22 @@ namespace XDG
             return (start != std::string::npos && end != std::string::npos) ? str.substr(start, end - start + 1) : "";
         }
 
-        std::vector<std::string> splitString(const std::string &input, char divider, bool trim = true) noexcept;
+        /**
+         * @brief Splits a string into a vector of substrings based on a delimiter.
+         *
+         * @param input The string to split.
+         * @param delimiter The character used to split the string.
+         * @param trim If `true`, removes leading and trailing spaces from each substring.
+         * @return A vector of strings resulting from the split operation.
+         */
+        std::vector<std::string> splitString(const std::string &input, char delimiter, bool trim = true) noexcept;
 
+        /**
+         * @brief Removes duplicate elements from a vector in place.
+         *
+         * @tparam T The type of elements in the vector.
+         * @param vec The vector from which duplicates will be removed.
+         */
         template<class T>
         inline void removeDuplicates(std::vector<T> &vec) noexcept
         {

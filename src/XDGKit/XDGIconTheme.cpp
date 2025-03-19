@@ -6,8 +6,8 @@ using namespace XDG;
 XDGIconTheme::XDGIconTheme(XDGKit &kit) noexcept :
     m_kit(kit)
 {
-    m_iconDirectories.reserve(36);
-    m_scaledIconDirectories.reserve(36);
+    m_iconDirectories.reserve(128);
+    m_scaledIconDirectories.reserve(128);
 }
 
 void XDGIconTheme::initIconsDir(const std::vector<std::string> &iconDirs, XDGIconDirectory::Type type) noexcept
@@ -100,7 +100,10 @@ void XDGIconTheme::initIconsDir(const std::vector<std::string> &iconDirs, XDGIco
             IcD.m_dir = themeDir / iconDir;
 
             if (std::filesystem::is_directory(IcD.m_dir))
-                iconsDirVec->emplace_back(IcD);
+            {
+                auto &newIconDir = iconsDirVec->emplace_back(IcD);
+                newIconDir.initIcons();
+            }
         }
     }
 }

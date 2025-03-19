@@ -18,7 +18,7 @@ HEADERS_INSTALL_PATH = join_paths(get_option('prefix'), get_option('includedir')
 # -------------- DEPENDENCIES --------------
 
 cpp                 = meson.get_compiler('cpp')
-pkg                 = import('pkgconfig')
+pkg         = import('pkgconfig')
 
 # -------------- HEADERS --------------
 

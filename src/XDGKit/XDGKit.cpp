@@ -2,13 +2,9 @@
 
 using namespace XDG;
 
-std::shared_ptr<XDGKit> kit;
-
-std::shared_ptr<XDGKit> XDGKit::Get() noexcept
+std::shared_ptr<XDGKit> XDGKit::Make() noexcept
 {
-    if (kit) return kit;
-    kit.reset(new XDGKit());
-    return kit;
+    return std::shared_ptr<XDGKit>(new XDGKit());
 }
 
 void XDGKit::rescanDataDirs() noexcept

@@ -29,7 +29,7 @@ void XDGIconThemeManager::restoreDefaultSearchDirs() noexcept
 void XDGIconThemeManager::findThemes() noexcept
 {
     m_themes.clear();
-    m_themes.reserve(32);
+    m_themes.reserve(256);
 
     try
     {
@@ -100,7 +100,7 @@ void XDGIconThemeManager::findThemes() noexcept
                     continue;
                 }
 
-                it->second.m_visibleName = name->second;
+                it->second.m_displayName = name->second;
                 it->second.m_comment = comment->second;
 
                 const auto iconDirs = XDGParsers::splitString(directories->second, ',', true);
@@ -165,6 +165,160 @@ void XDGIconThemeManager::sanitizeThemes() noexcept
         else if (hicolor != m_themes.end())
             it->second.m_inherits.emplace_back("hicolor");
     }
+}
+
+const XDGIcon *XDGIconThemeManager::findIconHelper(Search &search, const XDGIconTheme *theme) const noexcept
+{
+    if (search.visitedThemes.contains(theme))
+        return nullptr;
+
+    search.visitedThemes.emplace(theme);
+
+    int32_t distance;
+
+    for (const auto &dir : theme->scaledIconDirectories())
+    {
+        const auto &icon = dir.icons().find(search.icon);
+
+        if (icon == dir.icons().end() || (icon->second.extensions() & search.extensions) == 0)
+            continue;
+
+        distance = directorySizeDistance(search, dir);
+
+        if (distance < search.bestDistance)
+        {
+            search.bestDistance = distance;
+            search.bestIcon = &icon->second;
+        }
+
+        if (!directoryMatchesSize(search, dir))
+            continue;
+
+        return &icon->second;
+    }
+
+    for (const auto &dir : theme->iconDirectories())
+    {
+        const auto &icon = dir.icons().find(search.icon);
+
+        if (icon == dir.icons().end() || (icon->second.extensions() & search.extensions) == 0)
+            continue;
+
+        distance = directorySizeDistance(search, dir);
+
+        if (distance < search.bestDistance)
+        {
+            search.bestDistance = distance;
+            search.bestIcon = &icon->second;
+        }
+
+        if (!directoryMatchesSize(search, dir))
+            continue;
+
+        return &icon->second;
+    }
+
+
+    const XDGIcon *found { nullptr };
+    for (const auto &parentIt : theme->inherits())
+    {
+        const auto &parent = m_themes.find(parentIt);
+        found = findIconHelper(search, &parent->second);
+        if (found) return found;
+    }
+
+    return nullptr;
+}
+
+bool XDGIconThemeManager::directoryMatchesSize(Search &search, const XDGIconDirectory &dir) const noexcept
+{
+    if (search.scale != dir.scale())
+        return false;
+
+    if (dir.sizeType() == XDGIconDirectory::SizeType::Fixed)
+        return search.size == dir.size();
+    else if (dir.sizeType() == XDGIconDirectory::SizeType::Scalable)
+        return dir.minSize() <= search.size &&  search.size <= dir.maxSize();
+    else if (dir.sizeType() == XDGIconDirectory::SizeType::Threshold)
+        return dir.size() - dir.threshold() <= search.size && search.size <= dir.size() + dir.threshold();
+
+    return false;
+}
+
+int32_t XDGIconThemeManager::directorySizeDistance(Search &search, const XDGIconDirectory &dir) const noexcept
+{
+    if (dir.sizeType() == XDGIconDirectory::SizeType::Fixed)
+        return std::abs(search.bufferSize - dir.size() * dir.scale());
+    else if (dir.sizeType() == XDGIconDirectory::SizeType::Scalable)
+    {
+        if (search.bufferSize < dir.minSize() * dir.scale())
+            return dir.minSize() * dir.scale() - search.bufferSize;
+        else if (search.bufferSize > dir.maxSize() * dir.scale())
+            return search.bufferSize - dir.maxSize() * dir.scale();
+    }
+    else if (dir.sizeType() == XDGIconDirectory::SizeType::Threshold)
+    {
+        if (search.bufferSize < (dir.size() - dir.threshold()) * dir.scale())
+            return (dir.size() - dir.threshold()) * dir.scale() - search.bufferSize;
+        else if (search.bufferSize > (dir.maxSize() + dir.threshold()) * dir.scale())
+            return search.bufferSize - (dir.maxSize() + dir.threshold()) * dir.scale();
+    }
+
+    return std::numeric_limits<int32_t>::max();
+}
+
+const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t size, int32_t scale, uint32_t extensions, const std::vector<std::string> &themes) const noexcept
+{
+    Search search
+    {
+        .icon = icon,
+        .size = size,
+        .scale = scale,
+        .bufferSize = size * scale,
+        .extensions = extensions,
+        .themes = {},
+        .visitedThemes = {}
+    };
+
+    if ((extensions & (1 | 2 | 4)) == 0 || scale <= 0 || themes.empty())
+        return nullptr;
+
+    search.themes.reserve(32);
+
+    for (const auto &theme : themes)
+    {
+        if (theme == "")
+        {
+            for (const auto &T : m_themes)
+                search.themes.emplace_back(&T.second);
+
+            continue;
+        }
+
+        const auto &it = m_themes.find(theme);
+
+        if (it == m_themes.end())
+            continue;
+
+        search.themes.emplace_back(&it->second);
+    }
+
+    XDGParsers::removeDuplicates(search.themes);
+
+    if (search.themes.empty())
+        return nullptr;
+
+    search.visitedThemes.reserve(32);
+
+    const XDGIcon *found { nullptr };
+
+    for (const auto *theme : search.themes)
+    {
+        found = findIconHelper(search, theme);
+        if (found) return found;
+    }
+
+    return search.bestIcon;
 }
 
 XDGIconThemeManager::XDGIconThemeManager(XDGKit &kit) noexcept :
