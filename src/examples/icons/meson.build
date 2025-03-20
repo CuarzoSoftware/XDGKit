@@ -1,7 +1,7 @@
 executable(
-    'xdg-kit-icons',
+    'xdgkit-icons',
     sources : ['main.cpp'],
     dependencies : [
-        xdg_kit_dep
+        xdgkit_dep
     ],
     install : true)

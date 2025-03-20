@@ -33,7 +33,7 @@ endforeach
 
 # -------------- LIBRARY --------------
 
-xdg_kit = library(
+xdgkit = library(
     'XDGKit',
     sources : run_command('find', './src/XDGKit', '-type', 'f', '-name', '*[.cpp,.c]', check : false).stdout().strip().split('\n'),
     include_directories : ['./src'],
@@ -42,13 +42,13 @@ xdg_kit = library(
     soversion: VERSION_MAJOR,
     install : true)
 
-xdg_kit_dep = declare_dependency(
+xdgkit_dep = declare_dependency(
     dependencies: [],
     include_directories : ['./src'],
-    link_with : xdg_kit)
+    link_with : xdgkit)
 
 pkg.generate(
-    xdg_kit,
+    xdgkit,
     name: 'XDGKit',
     description: 'C++ XDG utilities kit.',
     version: meson.project_version(),
