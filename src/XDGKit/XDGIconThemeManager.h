@@ -3,7 +3,7 @@
 
 #include <XDGKit/XDGIconTheme.h>
 #include <filesystem>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 /**
@@ -33,7 +33,7 @@ public:
      * @return A constant reference to an unordered map where the key is the theme's
      *         directory basename, and the value is the corresponding XDGIconTheme object.
      */
-    const std::unordered_map<std::string, XDGIconTheme> &themes() const noexcept
+    const std::map<std::string, std::shared_ptr<XDGIconTheme>> &themes() const noexcept
     {
         return m_themes;
     }
@@ -62,8 +62,8 @@ private:
         int32_t scale;
         int32_t bufferSize;
         uint32_t extensions;
-        std::vector<const XDGIconTheme*> themes;
-        std::unordered_set<const XDGIconTheme*> visitedThemes;
+        std::vector<std::shared_ptr<XDGIconTheme>> themes;
+        std::unordered_set<std::shared_ptr<XDGIconTheme>> visitedThemes;
         int32_t bestDistance { std::numeric_limits<int32_t>::max() };
         const XDGIcon *bestIcon { nullptr };
     };
@@ -72,12 +72,12 @@ private:
     void restoreDefaultSearchDirs() noexcept;
     void findThemes() noexcept;
     void sanitizeThemes() noexcept;
-    const XDGIcon *findIconHelper(Search &search, const XDGIconTheme *theme) const noexcept;
+    const XDGIcon *findIconHelper(Search &search, std::shared_ptr<XDGIconTheme> theme) const noexcept;
     bool directoryMatchesSize(Search &search, const XDGIconDirectory &dir) const noexcept;
     int32_t directorySizeDistance(Search &search, const XDGIconDirectory &dir) const noexcept;
     XDGKit &m_kit;
     std::vector<std::filesystem::path> m_searchDirs;
-    std::unordered_map<std::string, XDGIconTheme> m_themes;
+    std::map<std::string, std::shared_ptr<XDGIconTheme>> m_themes;
 };
 
 #endif // XDGICONTHEMEMANAGER_H

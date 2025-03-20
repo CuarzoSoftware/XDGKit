@@ -40,7 +40,7 @@ public:
      *
      * @return A constant reference to the icon's name.
      */
-    const std::string &name() const noexcept { return m_name; };
+    const std::string &name() const noexcept { return *m_name; };
 
     /**
      * @brief Retrieves the absolute path of the icon for a specified file extension.
@@ -50,24 +50,7 @@ public:
      * @param ext The file extension for which to retrieve the icon's path.
      * @return The absolute path of the icon file with the specified extension.
      */
-    std::filesystem::path getPath(Extension ext) const noexcept
-    {
-        std::filesystem::path path = m_path;
-        switch (ext)
-        {
-        case PNG:
-            path += ".png";
-            break;
-        case SVG:
-            path += ".svg";
-            break;
-        case XPM:
-            path += ".xpm";
-            break;
-        }
-
-        return path;
-    }
+    std::filesystem::path getPath(Extension ext) const noexcept;
 
     /**
      * @brief Retrieves the directory to which this icon belongs.
@@ -81,10 +64,10 @@ public:
 private:
     friend class XDGIconDirectory;
     uint32_t m_extensions;
-    std::string m_name;
-    std::string m_displayName;
-    XDGIRect m_embeddedTextRect;
-    std::filesystem::path m_path;
+    const std::string *m_name;
+    //std::string m_displayName;
+    //XDGIRect m_embeddedTextRect;
+    //std::filesystem::path m_path;
     XDGIconDirectory &m_directory;
 };
 

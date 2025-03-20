@@ -26,7 +26,7 @@ public:
      */
     const std::string &name() const noexcept
     {
-        return m_name;
+        return *m_name;
     }
 
     /**
@@ -120,8 +120,11 @@ public:
      *
      * @return A constant reference to a vector of icon directories.
      */
-    const std::vector<XDGIconDirectory> &iconDirectories() const noexcept
+    const std::vector<std::shared_ptr<XDGIconDirectory>> &iconDirectories() const noexcept
     {
+        if (!m_initialized)
+            initAllIconsDir();
+
         return m_iconDirectories;
     }
 
@@ -130,25 +133,31 @@ public:
      *
      * @return A constant reference to a vector of scaled icon directories.
      */
-    const std::vector<XDGIconDirectory> &scaledIconDirectories() const noexcept
+    const std::vector<std::shared_ptr<XDGIconDirectory>> &scaledIconDirectories() const noexcept
     {
+        if (!m_initialized)
+            initAllIconsDir();
+
         return m_scaledIconDirectories;
     }
 
 private:
     friend class XDGIconThemeManager;
-    void initIconsDir(const std::vector<std::string> &iconDirs, XDGIconDirectory::Type type) noexcept;
-    XDGKit &m_kit;
-    std::string m_name;
+    void initAllIconsDir() const noexcept;
+    void initIconsDir(const std::vector<std::string> &iconDirs, XDGIconDirectory::Type type) const noexcept;
+    const std::string *m_name;
     std::string m_displayName;
     std::string m_comment;
     std::string m_example;
     std::vector<std::string> m_inherits;
-    std::vector<XDGIconDirectory> m_iconDirectories;
-    std::vector<XDGIconDirectory> m_scaledIconDirectories;
+    mutable std::vector<std::shared_ptr<XDGIconDirectory>> m_iconDirectories;
+    mutable std::vector<std::shared_ptr<XDGIconDirectory>> m_scaledIconDirectories;
     std::vector<std::filesystem::path> m_dirs;
     std::filesystem::path m_indexFilePath;
     XDGINI m_indexData;
+    std::vector<std::string> m_iconDirNames, m_scaledIconDirNames;
+    XDGKit &m_kit;
+    mutable bool m_initialized { false };
     bool m_hidden { false };
 };
 

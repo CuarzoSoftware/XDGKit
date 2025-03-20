@@ -10,7 +10,7 @@ using namespace XDG;
 
 int main()
 {
-    // Create an instance of XDGKit. Icon themes are indexed immediately.
+    // Create an instance of XDGKit.
     auto kit = XDGKit::Make();
 
     // Search for an icon
