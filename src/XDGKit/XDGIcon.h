@@ -63,7 +63,7 @@ public:
 
 private:
     friend class XDGIconDirectory;
-    uint32_t m_extensions;
+    uint32_t m_extensions { 0 };
     const std::string *m_name;
     //std::string m_displayName;
     //XDGIRect m_embeddedTextRect;
