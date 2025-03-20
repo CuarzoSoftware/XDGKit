@@ -12,6 +12,11 @@ void XDGIconThemeManager::restoreDefaultSearchDirs() noexcept
     if (std::filesystem::is_directory(path))
         m_searchDirs.emplace_back(std::move(path));
 
+    path = m_kit.homeDir() / ".local/share/icons";
+
+    if (std::filesystem::is_directory(path))
+        m_searchDirs.emplace_back(std::move(path));
+
     for (auto &dataDir : m_kit.dataDirs())
     {
         path = dataDir / "icons";
@@ -183,6 +188,9 @@ const XDGIcon *XDGIconThemeManager::findIconHelper(Search &search, const XDGIcon
         if (icon == dir.icons().end() || (icon->second.extensions() & search.extensions) == 0)
             continue;
 
+        if ((icon->second.extensions() & search.extensions & XDGIcon::SVG) != 0)
+            return &icon->second;
+
         distance = directorySizeDistance(search, dir);
 
         if (distance < search.bestDistance)
@@ -203,6 +211,9 @@ const XDGIcon *XDGIconThemeManager::findIconHelper(Search &search, const XDGIcon
 
         if (icon == dir.icons().end() || (icon->second.extensions() & search.extensions) == 0)
             continue;
+
+        if ((icon->second.extensions() & search.extensions & XDGIcon::SVG) != 0)
+            return &icon->second;
 
         distance = directorySizeDistance(search, dir);
 
@@ -264,7 +275,7 @@ int32_t XDGIconThemeManager::directorySizeDistance(Search &search, const XDGIcon
             return search.bufferSize - (dir.maxSize() + dir.threshold()) * dir.scale();
     }
 
-    return std::numeric_limits<int32_t>::max();
+    return std::numeric_limits<int32_t>::max() - 1;
 }
 
 const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t size, int32_t scale, uint32_t extensions, const std::vector<std::string> &themes) const noexcept
