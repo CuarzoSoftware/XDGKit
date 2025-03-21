@@ -24,7 +24,12 @@ public:
         XPM = static_cast<uint32_t>(1) << 2  /**< XPM file format. */
     };
 
-    XDGIcon(XDGIconDirectory &directory) noexcept;
+    XDGIcon(XDGIconDirectory &directory) noexcept : m_directory(directory) {}
+
+    /**
+     * @brief Handle to the parent kit.
+     */
+    XDGKit &kit() const noexcept;
 
     /**
      * @brief Retrieves the bitset of file extensions found for this icon.
@@ -40,7 +45,7 @@ public:
      *
      * @return A constant reference to the icon's name.
      */
-    const std::string &name() const noexcept { return *m_name; };
+    const char *name() const noexcept { return m_name; };
 
     /**
      * @brief Retrieves the absolute path of the icon for a specified file extension.
@@ -64,10 +69,7 @@ public:
 private:
     friend class XDGIconDirectory;
     uint32_t m_extensions { 0 };
-    const std::string *m_name;
-    //std::string m_displayName;
-    //XDGIRect m_embeddedTextRect;
-    //std::filesystem::path m_path;
+    const char *m_name;
     XDGIconDirectory &m_directory;
 };
 

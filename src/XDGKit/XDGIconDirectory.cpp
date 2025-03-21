@@ -1,12 +1,18 @@
 #include <XDGKit/XDGIconDirectory.h>
 #include <XDGKit/XDGIcon.h>
+#include <XDGKit/XDGKit.h>
 #include <unordered_set>
 
 using namespace XDG;
 
-XDGIconDirectory::XDGIconDirectory(XDGIconTheme &theme) noexcept : m_theme(theme)
+std::filesystem::path XDGIconDirectory::dir() const noexcept
 {
-    //m_icons.reserve(512);
+    return std::filesystem::path(m_themeDir) / m_dirName;
+}
+
+XDGKit &XDGIconDirectory::kit() const noexcept
+{
+    return m_theme.kit();
 }
 
 void XDGIconDirectory::initIcons() noexcept
@@ -20,12 +26,14 @@ void XDGIconDirectory::initIcons() noexcept
             if (!std::filesystem::is_regular_file(entry.path()) || !extensions.contains(entry.path().extension()))
                 continue;
 
-            auto it = m_icons.find(entry.path().stem().string());
+            const char *name { kit().saveOrGetString(entry.path().stem().string()) };
+
+            auto it = m_icons.find(name);
 
             if (it == m_icons.end())
             {
-                it = m_icons.emplace(entry.path().stem().string(), std::shared_ptr<XDGIcon>(new XDGIcon(*this))).first;
-                it->second->m_name = &it->first;
+                it = m_icons.emplace(name, std::shared_ptr<XDGIcon>(new XDGIcon(*this))).first;
+                it->second->m_name = it->first;
             }
 
             if (entry.path().extension() == ".png")

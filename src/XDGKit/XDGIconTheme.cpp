@@ -1,3 +1,4 @@
+#include <XDGKit/XDGKit.h>
 #include <XDGKit/XDGIconTheme.h>
 #include <XDGKit/XDGIconDirectory.h>
 
@@ -6,8 +7,8 @@ using namespace XDG;
 XDGIconTheme::XDGIconTheme(XDGKit &kit) noexcept :
     m_kit(kit)
 {
-    m_iconDirectories.reserve(64);
-    m_scaledIconDirectories.reserve(64);
+    m_iconDirectories.reserve(16);
+    m_scaledIconDirectories.reserve(16);
 }
 
 void XDGIconTheme::initAllIconsDir() const noexcept
@@ -15,6 +16,9 @@ void XDGIconTheme::initAllIconsDir() const noexcept
     m_initialized = true;
     initIconsDir(m_iconDirNames, XDGIconDirectory::Type::Normal);
     initIconsDir(m_scaledIconDirNames, XDGIconDirectory::Type::Scaled);
+    m_indexData.clear();
+    m_iconDirNames.clear();
+    m_scaledIconDirNames.clear();
 }
 
 void XDGIconTheme::initIconsDir(const std::vector<std::string> &iconDirs, XDGIconDirectory::Type type) const noexcept
@@ -104,11 +108,11 @@ void XDGIconTheme::initIconsDir(const std::vector<std::string> &iconDirs, XDGIco
 
         for (const auto &themeDir : dirs())
         {
-            IcD.m_dir = themeDir / iconDir;
-
-            if (std::filesystem::is_directory(IcD.m_dir))
+            if (std::filesystem::is_directory(themeDir / iconDir))
             {
                 auto &newIconDir = iconsDirVec->emplace_back(std::shared_ptr<XDGIconDirectory>(new XDGIconDirectory(IcD)));
+                newIconDir->m_themeDir = kit().saveOrGetString(themeDir.string());
+                newIconDir->m_dirName = kit().saveOrGetString(iconDir);
                 newIconDir->initIcons();
             }
         }

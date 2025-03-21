@@ -1,45 +1,112 @@
 #include <XDGKit/XDGKit.h>
 #include <iostream>
+#include <fstream>
 
 using namespace XDG;
 
+static const std::vector<int> testSizes {  32, 64, 128, 512 };
+static const std::vector<int> testExtensions { XDGIcon::PNG, XDGIcon::SVG };
+static const std::vector<std::string> testIcons
+{
+    "firefox", "code", "gedit", "foot", "spotify", "google-chrome", "discord",
+    "qtcreator", "nemo", "user-info", "weather", "web-browser", "chat", "vscode",
+    "date", "zoom-out", "zoom-in", "accessories-calculator", "accessories-clock",
+    "application-default", "chat-symbolic", "audio-x-generic", "video-x-generic",
+    "x-office-document-template"
+};
+
+static void printMemoryUsageInMB()
+{
+    std::ifstream statusFile { "/proc/self/status" };
+    if (!statusFile.is_open()) return;
+
+    std::string line;
+    long memoryUsageKB { 0 };
+
+    while (std::getline(statusFile, line))
+    {
+        // Look for the VmRSS line
+        if (line.compare(0, 6, "VmRSS:") == 0)
+        {
+            // Extract the memory usage value (in KB)
+            std::istringstream iss(line.substr(6));
+            iss >> memoryUsageKB;
+            break;
+        }
+    }
+
+    statusFile.close();
+    double memoryUsageMB { static_cast<double>(memoryUsageKB) / 1024.0 };
+    std::cout << "Memory usage: " << memoryUsageMB << " MB" << std::endl;
+}
+
 int main()
 {
-    size_t themesN = 0;
+    const XDGIcon *icon;
+    const char *ext;
+    int64_t maxTimeMs { 0 };
+    int64_t sumTimeMs { 0 };
+    int64_t count { 0 };
+    int64_t found { 0 };
+    int64_t indexingTimeMs { 0 };
 
     auto start = std::chrono::high_resolution_clock::now();
     auto kit = XDGKit::Make();
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    indexingTimeMs = duration.count();
 
-    themesN = kit->iconThemeManager().themes().size();
-
-    std::cout << duration.count() << " ms to index " << themesN << " themes " << std::endl;
-
-    start = std::chrono::high_resolution_clock::now();
-    const XDGIcon *firefox { kit->iconThemeManager().findIcon("firefox", 512, 2, XDGIcon::PNG | XDGIcon::SVG) };
-    end = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << duration.count() << " ms to find icon for the first time." << std::endl;
-
-    start = std::chrono::high_resolution_clock::now();
-    firefox = kit->iconThemeManager().findIcon("firefox", 512, 2, XDGIcon::PNG | XDGIcon::SVG);
-    end = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cout << duration.count() << " ms to find icon for the second time." << std::endl;
-
-    if (firefox)
+    for (const auto &iconName : testIcons)
     {
-        std::cout << firefox->directory().theme().name() << ":firefox " << firefox->directory().size() << "@" << firefox->directory().scale() << std::endl;
+        for (auto extension : testExtensions)
+        {
+            if (extension == XDGIcon::PNG) ext = "[PNG]";
+            else if (extension == XDGIcon::SVG) ext = "[SVG]";
+            else ext = "[XPM]";
 
-        if (firefox->extensions() & XDGIcon::PNG)
-            std::cout << "PNG PATH: " << firefox->getPath(XDGIcon::PNG) << std::endl;
+            for (int scale = 1; scale < 3; scale++)
+            {
+                for (int size : testSizes)
+                {
+                    count++;
+                    start = std::chrono::high_resolution_clock::now();
+                    icon = kit->iconThemeManager().findIcon(iconName, size, scale, extension);
+                    end = std::chrono::high_resolution_clock::now();
+                    duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+                    sumTimeMs += duration.count();
 
-        if (firefox->extensions() & XDGIcon::SVG)
-            std::cout << "SVG PATH: " << firefox->getPath(XDGIcon::SVG) << std::endl;
+                    if (duration.count() > maxTimeMs)
+                        maxTimeMs = duration.count();
+
+                    if (icon)
+                    {
+                        found++;
+                        printf("%s", "\033[0;32m");
+                    }
+                    else
+                        printf("%s", "\033[0;31m");
+
+                    printf("[FOUND:%s]\033[0m[%s]%s[%d@x%d]",
+                           icon ? "Y" : "N",
+                           iconName.c_str(),
+                           ext, size, scale);
+
+                    if (duration.count() > 0) printf("%s","\033[0;33m");
+                    printf("[%ld ms]\n", duration.count());
+                    if (duration.count() > 0) printf("%s","\033[0m");
+                }
+            }
+        }
+
+        printMemoryUsageInMB();
     }
-    else
-        std::cout << "Could not find an icon named 'firefox'." << std::endl;
 
+    std::cout << std::endl;
+    std::cout << "Themes Found:\t\t" << kit->iconThemeManager().themes().size() << "\n";
+    std::cout << "Icons Found:\t\t" << found << "/" << count << "\n";
+    std::cout << "Indexing Time:\t\t" << indexingTimeMs << " ms\n";
+    std::cout << "Max Lookup Time:\t" << maxTimeMs << " ms\n";
+    std::cout << "Avg Lookup Time:\t" << sumTimeMs/count << " ms" << std::endl;
+    printMemoryUsageInMB();
     return 0;
 }

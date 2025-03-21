@@ -13,10 +13,19 @@ class XDG::XDGIconThemeManager
 {
 public:
     /**
+     * @brief Handle to the parent kit.
+     */
+    XDGKit &kit() const noexcept
+    {
+        return m_kit;
+    }
+
+    /**
      * @brief Retrieves the directories to search for icon themes, in order of precedence.
      *
      * The default search directories in order are:
      * - $HOME/.icons
+     * - $HOME/.local/share/icons
      * - $XDG_DATA_DIRS/icons
      * - /usr/share/pixmaps
      *
@@ -54,10 +63,22 @@ public:
      */
     const XDGIcon *findIcon(const std::string &icon, int32_t size, int32_t scale = 1, uint32_t extensions = XDGIcon::PNG | XDGIcon::SVG, const std::vector<std::string> &themes = { "" }) const noexcept;
 
+    /**
+     * @brief Clears the `indexData()` of all themes stored in `XDGIconTheme`.
+     *
+     * This function is useful for freeing up memory when the additional parameters
+     * defined in `index.theme` files are no longer needed. It ensures that the
+     * theme data is released, reducing memory usage.
+     *
+     * @note This operation is non-recoverable. Once cleared, the `indexData()`
+     *       for all themes will need to be reloaded if accessed again.
+     */
+    void clearThemesIndexData() noexcept;
+
 private:
     struct Search
     {
-        const std::string &icon;
+        const char *icon;
         int32_t size;
         int32_t scale;
         int32_t bufferSize;
@@ -68,16 +89,16 @@ private:
         const XDGIcon *bestIcon { nullptr };
     };
     friend class XDGKit;
-    XDGIconThemeManager(XDGKit &kit) noexcept;
+    XDGIconThemeManager(XDGKit &kit) noexcept : m_kit(kit) {}
     void restoreDefaultSearchDirs() noexcept;
     void findThemes() noexcept;
     void sanitizeThemes() noexcept;
     const XDGIcon *findIconHelper(Search &search, std::shared_ptr<XDGIconTheme> theme) const noexcept;
     bool directoryMatchesSize(Search &search, const XDGIconDirectory &dir) const noexcept;
     int32_t directorySizeDistance(Search &search, const XDGIconDirectory &dir) const noexcept;
-    XDGKit &m_kit;
     std::vector<std::filesystem::path> m_searchDirs;
     std::map<std::string, std::shared_ptr<XDGIconTheme>> m_themes;
+    XDGKit &m_kit;
 };
 
 #endif // XDGICONTHEMEMANAGER_H

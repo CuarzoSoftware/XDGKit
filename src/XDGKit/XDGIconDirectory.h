@@ -47,7 +47,12 @@ public:
         MimeTypes     = static_cast<uint32_t>(1) << 3  /**< Icons related to MIME types. */
     };
 
-    XDGIconDirectory(XDGIconTheme &theme) noexcept;
+    XDGIconDirectory(XDGIconTheme &theme) noexcept : m_theme(theme) {}
+
+    /**
+     * @brief Handle to the parent kit.
+     */
+    XDGKit &kit() const noexcept;
 
     /**
      * @brief Retrieves the nominal (unscaled) size of icons in the directory.
@@ -106,18 +111,23 @@ public:
     Context context() const noexcept { return m_context; };
 
     /**
-     * @brief Retrieves the absolute path to the icon directory.
-     *
-     * @return A constant reference to the directory's path.
+     * @brief Retrieves the directory name.
      */
-    const std::filesystem::path &dir() const noexcept { return m_dir; };
+    const char *dirName() const noexcept { return m_dirName; };
+
+    /**
+     * @brief Retrieves the absolute path to the icon directory.
+     */
+    std::filesystem::path dir() const noexcept;
 
     /**
      * @brief Retrieves the icons located in the directory.
      *
+     * @note Use XDKit::getString() to find the string pointer.
+     *
      * @return A constant reference to a map of icon names to their corresponding icon objects.
      */
-    const std::map<std::string, std::shared_ptr<XDGIcon>> &icons() const noexcept { return m_icons; }
+    const std::map<const char *, std::shared_ptr<XDGIcon>> &icons() const noexcept { return m_icons; }
 
     /**
      * @brief Retrieves the theme to which this directory belongs.
@@ -125,10 +135,13 @@ public:
      * @return A reference to the associated XDGIconTheme object.
      */
     XDGIconTheme &theme() const noexcept { return m_theme; };
+
 private:
     friend class XDGIconThemeManager;
     friend class XDGIconTheme;
     void initIcons() noexcept;
+    const char *m_themeDir { nullptr };
+    const char *m_dirName { nullptr };
     int32_t m_size;
     int32_t m_maxSize;
     int32_t m_minSize;
@@ -137,8 +150,7 @@ private:
     Type m_type;
     SizeType m_sizeType;
     Context m_context;
-    std::filesystem::path m_dir;
-    std::map<std::string, std::shared_ptr<XDGIcon>> m_icons;
+    std::map<const char *, std::shared_ptr<XDGIcon>> m_icons;
     XDGIconTheme &m_theme;
 };
 

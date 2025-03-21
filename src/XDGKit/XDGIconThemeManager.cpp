@@ -34,7 +34,6 @@ void XDGIconThemeManager::restoreDefaultSearchDirs() noexcept
 void XDGIconThemeManager::findThemes() noexcept
 {
     m_themes.clear();
-    //m_themes.reserve(256);
 
     try
     {
@@ -278,7 +277,7 @@ const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t si
 {
     Search search
     {
-        .icon = icon,
+        .icon = kit().saveOrGetString(icon),
         .size = size,
         .scale = scale,
         .bufferSize = size * scale,
@@ -328,8 +327,10 @@ const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t si
     return search.bestIcon;
 }
 
-XDGIconThemeManager::XDGIconThemeManager(XDGKit &kit) noexcept :
-    m_kit(kit)
+void XDGIconThemeManager::clearThemesIndexData() noexcept
 {
-
+    for (auto it = m_themes.begin(); it != m_themes.end(); it++)
+        it->second->m_indexData.clear();
 }
+
+

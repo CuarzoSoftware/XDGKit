@@ -4,6 +4,7 @@
 #include <XDGKit/XDGIconThemeManager.h>
 #include <filesystem>
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
 /**
@@ -14,6 +15,12 @@
 class XDG::XDGKit
 {
 public:
+
+    /**
+     * @brief Creates a new instance of XDGKit.
+     */
+    XDGKit() noexcept;
+
     /**
      * @brief Creates a new instance of XDGKit.
      *
@@ -51,13 +58,37 @@ public:
         return m_dataDirs;
     }
 
+    /**
+     * @brief Retrieves the pointer of the given string in the string pool.
+     *
+     * @param string String to query.
+     * @return the pointer of the string or `nullptr` if not found.
+     */
+    const char *getString(const std::string &string) const noexcept
+    {
+        const auto &it = m_stringPool.find(string);
+
+        if (it == m_stringPool.end())
+            return nullptr;
+
+        return it->c_str();
+    }
+
 private:
-    XDGKit() noexcept;
+    friend class XDGIconDirectory;
+    friend class XDGIconThemeManager;
+    friend class XDGIconTheme;
+    friend class XDGIcon;
+    const char *saveOrGetString(const std::string &string) noexcept
+    {
+        return m_stringPool.insert(string).first->c_str();
+    }
     void initHomeDir() noexcept;
     void rescanDataDirs() noexcept;
     XDGIconThemeManager m_iconThemeManager;
     std::filesystem::path m_homeDir;
     std::vector<std::filesystem::path> m_dataDirs;
+    std::unordered_set<std::string> m_stringPool;
 };
 
 #endif // XDGKIT_H

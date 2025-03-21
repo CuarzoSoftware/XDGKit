@@ -20,6 +20,14 @@ public:
     XDGIconTheme(XDGKit &kit) noexcept;
 
     /**
+     * @brief Handle to the parent kit.
+     */
+    XDGKit &kit() const noexcept
+    {
+        return m_kit;
+    }
+
+    /**
      * @brief Retrieves the theme's directory base name.
      *
      * @return A constant reference to the theme's base name.
@@ -145,17 +153,17 @@ private:
     friend class XDGIconThemeManager;
     void initAllIconsDir() const noexcept;
     void initIconsDir(const std::vector<std::string> &iconDirs, XDGIconDirectory::Type type) const noexcept;
+    mutable std::vector<std::shared_ptr<XDGIconDirectory>> m_iconDirectories;
+    mutable std::vector<std::shared_ptr<XDGIconDirectory>> m_scaledIconDirectories;
     const std::string *m_name;
     std::string m_displayName;
     std::string m_comment;
     std::string m_example;
     std::vector<std::string> m_inherits;
-    mutable std::vector<std::shared_ptr<XDGIconDirectory>> m_iconDirectories;
-    mutable std::vector<std::shared_ptr<XDGIconDirectory>> m_scaledIconDirectories;
     std::vector<std::filesystem::path> m_dirs;
     std::filesystem::path m_indexFilePath;
-    XDGINI m_indexData;
-    std::vector<std::string> m_iconDirNames, m_scaledIconDirNames;
+    mutable XDGINI m_indexData;
+    mutable std::vector<std::string> m_iconDirNames, m_scaledIconDirNames;
     XDGKit &m_kit;
     mutable bool m_initialized { false };
     bool m_hidden { false };
