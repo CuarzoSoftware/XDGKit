@@ -1,10 +1,8 @@
 #ifndef XDGNAMESPACE_H
 #define XDGNAMESPACE_H
 
-#include <cstdint>
-
 /**
- * @brief XDG Namespace
+ * @brief Namespace
  */
 namespace XDG
 {
@@ -13,9 +11,9 @@ namespace XDG
     class XDGIconTheme;
     class XDGIconDirectory;
     class XDGIcon;
+    class XDGINI;
     struct XDGIRect;
     struct XDGIPoint;
-    typedef uintptr_t XDGID;
 };
 
 #endif // XDGNAMESPACE_H

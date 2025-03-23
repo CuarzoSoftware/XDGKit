@@ -7,7 +7,7 @@
 #include <map>
 
 /**
- * @brief Group of Icons with Shared Properties.
+ * @brief Group of icons with shared properties.
  *
  * This class encapsulates properties of an icon directory, including its size type,
  * scaling information, context, and the icons it contains.
@@ -40,11 +40,12 @@ public:
      */
     enum Context
     {
-        NoContext     = 0, /**< No specific context. */
-        Actions       = static_cast<uint32_t>(1) << 0, /**< Icons related to actions. */
-        Devices       = static_cast<uint32_t>(1) << 1, /**< Icons related to devices. */
-        FileSystems   = static_cast<uint32_t>(1) << 2, /**< Icons related to file systems. */
-        MimeTypes     = static_cast<uint32_t>(1) << 3  /**< Icons related to MIME types. */
+        NoContext     = static_cast<uint32_t>(1) << 0, /**< No specific context. */
+        Actions       = static_cast<uint32_t>(1) << 1, /**< Icons related to actions. */
+        Devices       = static_cast<uint32_t>(1) << 2, /**< Icons related to devices. */
+        FileSystems   = static_cast<uint32_t>(1) << 3, /**< Icons related to file systems. */
+        MimeTypes     = static_cast<uint32_t>(1) << 4,  /**< Icons related to MIME types. */
+        AnyContext    = NoContext | Actions | Devices | FileSystems | MimeTypes  /**< All flags */
     };
 
     XDGIconDirectory(XDGIconTheme &theme) noexcept : m_theme(theme) {}
@@ -149,7 +150,7 @@ private:
     int32_t m_threshold;
     Type m_type;
     SizeType m_sizeType;
-    Context m_context;
+    Context m_context { NoContext };
     std::map<const char *, std::shared_ptr<XDGIcon>> m_icons;
     XDGIconTheme &m_theme;
 };

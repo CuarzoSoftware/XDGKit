@@ -4,8 +4,8 @@
 
 using namespace XDG;
 
-static const std::vector<int> testSizes {  32, 64, 128, 512 };
-static const std::vector<int> testExtensions { XDGIcon::PNG, XDGIcon::SVG };
+static const std::vector<int> testSizes { 16, 32, 48, 64, 96, 128, 256, 512 };
+static const std::vector<int> testExtensions { XDGIcon::SVG, XDGIcon::PNG, XDGIcon::XPM };
 static const std::vector<std::string> testIcons
 {
     "firefox", "code", "gedit", "foot", "spotify", "google-chrome", "discord",

@@ -5,7 +5,7 @@
 #include <cstdint>
 
 /**
- * @brief A 2D Point.
+ * @brief A 2D point.
  *
  * This structure defines a point using its x and y coordinates.
  */

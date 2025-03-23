@@ -8,7 +8,7 @@
 #include <vector>
 
 /**
- * @brief Core Class.
+ * @brief Core class.
  *
  * When destroyed, all references to themes and icons are invalidated.
  */
@@ -79,8 +79,15 @@ private:
     friend class XDGIconThemeManager;
     friend class XDGIconTheme;
     friend class XDGIcon;
-    const char *saveOrGetString(const std::string &string) noexcept
+    const char *saveOrGetString(const std::string &string, bool *inserted = nullptr) noexcept
     {
+        if (inserted)
+        {
+            const auto &it = m_stringPool.insert(string);
+            *inserted = it.second;
+            return it.first->c_str();
+        }
+
         return m_stringPool.insert(string).first->c_str();
     }
     void initHomeDir() noexcept;

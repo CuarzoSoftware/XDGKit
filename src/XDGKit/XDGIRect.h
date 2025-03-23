@@ -5,7 +5,7 @@
 #include <cstdint>
 
 /**
- * @brief An Rectangle.
+ * @brief A rectangle.
  *
  * This structure defines a rectangle using two points:
  * the top-left corner (`x0`, `y0`) and the bottom-right corner (`x1`, `y1`).

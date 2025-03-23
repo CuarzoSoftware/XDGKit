@@ -1,18 +1,20 @@
 #ifndef XDGICONTHEME_H
 #define XDGICONTHEME_H
 
-#include <XDGKit/XDGNamespace.h>
-#include <XDGKit/XDGParsers.h>
 #include <XDGKit/XDGIconDirectory.h>
+#include <XDGKit/XDGINI.h>
 #include <filesystem>
 #include <string>
 #include <vector>
 
 /**
- * @brief An Icon Theme.
+ * @brief An icon theme.
  *
  * This class encapsulates the properties and data of an icon theme, including
  * its name, directories, fallback themes, and associated metadata.
+ *
+ * Icon themes are loaded lazily. The loading typically occurs whenever `XDGIconThemeManager::findIcon()`
+ * attempts to access `iconDirectories()` or `scaledIconDirectories()` for the first time.
  */
 class XDG::XDGIconTheme
 {
@@ -25,6 +27,17 @@ public:
     XDGKit &kit() const noexcept
     {
         return m_kit;
+    }
+
+    /**
+     * @brief Verifies whether the theme has been loaded.
+     *
+     * The theme is loaded lazily when either `iconDirectories()` or `scaledIconDirectories()`
+     * is accessed for the first time.
+     */
+    bool initialized() const noexcept
+    {
+        return m_initialized;
     }
 
     /**
@@ -124,6 +137,20 @@ public:
     }
 
     /**
+     * @brief Clears the contents of indexData().
+     *
+     * This method releases the information of the loaded `index.theme` when it is no longer needed.
+     * This doesn't affect properties such as name(), displayName(), comment(), ext.
+     *
+     * @note Calling this method on an uninitialized theme has no effect.
+     */
+    void freeIndexData() noexcept
+    {
+        if (m_initialized)
+            m_indexData.clear();
+    }
+
+    /**
      * @brief Retrieves the directories containing normal icons.
      *
      * @return A constant reference to a vector of icon directories.
@@ -159,9 +186,9 @@ private:
     std::string m_displayName;
     std::string m_comment;
     std::string m_example;
-    std::vector<std::string> m_inherits;
-    std::vector<std::filesystem::path> m_dirs;
-    std::filesystem::path m_indexFilePath;
+    mutable std::vector<std::string> m_inherits;
+    mutable std::vector<std::filesystem::path> m_dirs;
+    mutable std::filesystem::path m_indexFilePath;
     mutable XDGINI m_indexData;
     mutable std::vector<std::string> m_iconDirNames, m_scaledIconDirNames;
     XDGKit &m_kit;

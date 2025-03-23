@@ -16,9 +16,11 @@ void XDGIconTheme::initAllIconsDir() const noexcept
     m_initialized = true;
     initIconsDir(m_iconDirNames, XDGIconDirectory::Type::Normal);
     initIconsDir(m_scaledIconDirNames, XDGIconDirectory::Type::Scaled);
-    m_indexData.clear();
     m_iconDirNames.clear();
     m_scaledIconDirNames.clear();
+    m_iconDirNames.shrink_to_fit();
+    m_scaledIconDirNames.shrink_to_fit();
+    m_dirs.shrink_to_fit();
 }
 
 void XDGIconTheme::initIconsDir(const std::vector<std::string> &iconDirs, XDGIconDirectory::Type type) const noexcept

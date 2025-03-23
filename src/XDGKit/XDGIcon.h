@@ -5,7 +5,7 @@
 #include <filesystem>
 
 /**
- * @brief Properties of an Icon.
+ * @brief Properties of an icon.
  *
  * This class provides information about an icon, including its name, file extensions,
  * paths, and the directory to which it belongs.

@@ -1,5 +1,6 @@
 #include <XDGKit/XDGIconThemeManager.h>
 #include <XDGKit/XDGKit.h>
+#include <XDGKit/XDGUtils.h>
 
 using namespace XDG;
 
@@ -84,7 +85,7 @@ void XDGIconThemeManager::findThemes() noexcept
                 it = m_themes.erase(it);
             else
             {
-                it->second->m_indexData = std::move(*XDGParsers::ParseINI(it->second->m_indexFilePath).get());
+                it->second->m_indexData = std::move(*XDGINI::Load(it->second->m_indexFilePath).get());
                 const auto &mainSection { it->second->m_indexData.find("Icon Theme") };
 
                 if (mainSection == it->second->m_indexData.end())
@@ -107,14 +108,14 @@ void XDGIconThemeManager::findThemes() noexcept
                 it->second->m_displayName = name->second;
                 it->second->m_comment = comment->second;
 
-                it->second->m_iconDirNames = XDGParsers::splitString(directories->second, ',', true);
+                it->second->m_iconDirNames = XDGUtils::splitString(directories->second, ',', true);
 
                 const auto &scaledDirectories { mainSection->second.find("ScaledDirectories") };
                 const auto &hidden { mainSection->second.find("Hidden") };
                 const auto &example { mainSection->second.find("Example") };
 
                 if (scaledDirectories != mainSection->second.end())
-                    it->second->m_scaledIconDirNames = XDGParsers::splitString(scaledDirectories->second, ',', true);
+                    it->second->m_scaledIconDirNames = XDGUtils::splitString(scaledDirectories->second, ',', true);
 
                 // Inherits is done later
 
@@ -148,10 +149,10 @@ void XDGIconThemeManager::sanitizeThemes() noexcept
 
         if (inherits != mainSection->second.end())
         {
-            it->second->m_inherits = XDGParsers::splitString(inherits->second, ',', true);
+            it->second->m_inherits = XDGUtils::splitString(inherits->second, ',', true);
             if (hicolor != m_themes.end())
                 it->second->m_inherits.emplace_back("hicolor");
-            XDGParsers::removeDuplicates(it->second->m_inherits);
+            XDGUtils::removeDuplicates(it->second->m_inherits);
 
             // Remove self and non existent inherits
             for (auto inh = it->second->m_inherits.begin(); inh != it->second->m_inherits.end();)
@@ -178,6 +179,9 @@ const XDGIcon *XDGIconThemeManager::findIconHelper(Search &search, std::shared_p
 
     for (const auto &dir : theme->scaledIconDirectories())
     {
+        if ((dir->context() & search.contexts) == 0)
+            continue;
+
         const auto &icon = dir->icons().find(search.icon);
 
         if (icon == dir->icons().end() || (icon->second->extensions() & search.extensions) == 0)
@@ -202,6 +206,9 @@ const XDGIcon *XDGIconThemeManager::findIconHelper(Search &search, std::shared_p
 
     for (const auto &dir : theme->iconDirectories())
     {
+        if ((dir->context() & search.contexts) == 0)
+            continue;
+
         const auto &icon = dir->icons().find(search.icon);
 
         if (icon == dir->icons().end() || (icon->second->extensions() & search.extensions) == 0)
@@ -273,20 +280,21 @@ int32_t XDGIconThemeManager::directorySizeDistance(Search &search, const XDGIcon
     return std::numeric_limits<int32_t>::max() - 1;
 }
 
-const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t size, int32_t scale, uint32_t extensions, const std::vector<std::string> &themes) const noexcept
+const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t size, int32_t scale, uint32_t extensions, const std::vector<std::string> &themes, uint32_t contexts) const noexcept
 {
     Search search
     {
-        .icon = kit().saveOrGetString(icon),
+        .icon = nullptr,
         .size = size,
         .scale = scale,
         .bufferSize = size * scale,
         .extensions = extensions,
+        .contexts = contexts,
         .themes = {},
         .visitedThemes = {}
     };
 
-    if ((extensions & (1 | 2 | 4)) == 0 || scale <= 0 || themes.empty())
+    if ((extensions & (1 | 2 | 4)) == 0 || scale <= 0 || themes.empty() || (contexts & XDGIconDirectory::AnyContext) == 0)
         return nullptr;
 
     search.themes.reserve(m_themes.size());
@@ -309,7 +317,7 @@ const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t si
         search.themes.emplace_back(it->second);
     }
 
-    XDGParsers::removeDuplicates(search.themes);
+    XDGUtils::removeDuplicates(search.themes);
 
     if (search.themes.empty())
         return nullptr;
@@ -317,6 +325,7 @@ const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t si
     search.visitedThemes.reserve(m_themes.size());
 
     const XDGIcon *found { nullptr };
+    search.icon = kit().saveOrGetString(icon, &search.inserted);
 
     for (const auto &theme : search.themes)
     {
@@ -324,13 +333,8 @@ const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t si
         if (found) return found;
     }
 
+    if (!search.bestIcon && (search.contexts & XDGIconDirectory::AnyContext) == XDGIconDirectory::AnyContext)
+        kit().m_stringPool.erase(icon);
+
     return search.bestIcon;
 }
-
-void XDGIconThemeManager::clearThemesIndexData() noexcept
-{
-    for (auto it = m_themes.begin(); it != m_themes.end(); it++)
-        it->second->m_indexData.clear();
-}
-
-

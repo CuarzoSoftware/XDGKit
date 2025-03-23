@@ -1,9 +1,9 @@
-#include <XDGKit/XDGParsers.h>
+#include <XDGKit/XDGINI.h>
 #include <fstream>
 
 using namespace XDG;
 
-std::shared_ptr<XDGINI> XDGParsers::ParseINI(const std::filesystem::path &iniFile) noexcept
+std::shared_ptr<XDGINI> XDGINI::Load(const std::filesystem::path &iniFile) noexcept
 {
     std::shared_ptr<XDGINI> data { std::make_unique<XDGINI>() };
     std::ifstream file(iniFile);
@@ -55,20 +55,4 @@ std::shared_ptr<XDGINI> XDGParsers::ParseINI(const std::filesystem::path &iniFil
 
     file.close();
     return data;
-}
-
-std::vector<std::string> XDGParsers::splitString(const std::string &input, char delimiter, bool trim) noexcept
-{
-    std::vector<std::string> result;
-    result.reserve(32);
-    std::stringstream ss(input);
-    std::string token;
-
-    while (std::getline(ss, token, delimiter))
-    {
-        if (trim) result.emplace_back(trimString(token));
-        else result.emplace_back(token);
-    }
-
-    return result;
 }

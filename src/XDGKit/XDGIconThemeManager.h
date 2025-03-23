@@ -2,12 +2,13 @@
 #define XDGICONTHEMEMANAGER_H
 
 #include <XDGKit/XDGIconTheme.h>
+#include <unordered_set>
 #include <filesystem>
 #include <map>
 #include <vector>
 
 /**
- * @brief Utility for Finding Icons.
+ * @brief Utility for finding icons.
  */
 class XDG::XDGIconThemeManager
 {
@@ -59,30 +60,26 @@ public:
      * @param extensions Flags indicating the acceptable image file extensions.
      * @param themes A list of theme names to search, in the specified order.
      *               An empty string ("") serves as a placeholder to search in all themes available.
+     * @param contexts Flags to limit the search to the given XDGIconDirectory::Context (s).
      * @return A pointer to the closest matching icon, or `nullptr` if no match is found.
      */
-    const XDGIcon *findIcon(const std::string &icon, int32_t size, int32_t scale = 1, uint32_t extensions = XDGIcon::PNG | XDGIcon::SVG, const std::vector<std::string> &themes = { "" }) const noexcept;
-
-    /**
-     * @brief Clears the `indexData()` of all themes stored in `XDGIconTheme`.
-     *
-     * This function is useful for freeing up memory when the additional parameters
-     * defined in `index.theme` files are no longer needed. It ensures that the
-     * theme data is released, reducing memory usage.
-     *
-     * @note This operation is non-recoverable. Once cleared, the `indexData()`
-     *       for all themes will need to be reloaded if accessed again.
-     */
-    void clearThemesIndexData() noexcept;
+    const XDGIcon *findIcon(
+        const std::string &icon,
+        int32_t size, int32_t scale = 1,
+        uint32_t extensions = XDGIcon::PNG | XDGIcon::SVG,
+        const std::vector<std::string> &themes = { "" },
+        uint32_t contexts = XDGIconDirectory::AnyContext) const noexcept;
 
 private:
     struct Search
     {
         const char *icon;
+        bool inserted { false };
         int32_t size;
         int32_t scale;
         int32_t bufferSize;
         uint32_t extensions;
+        uint32_t contexts;
         std::vector<std::shared_ptr<XDGIconTheme>> themes;
         std::unordered_set<std::shared_ptr<XDGIconTheme>> visitedThemes;
         int32_t bestDistance { std::numeric_limits<int32_t>::max() };

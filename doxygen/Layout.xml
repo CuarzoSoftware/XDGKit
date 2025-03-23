@@ -6,6 +6,7 @@
     
     <tab type="classes" visible="no" title="API">
       <tab type="classes" visible="yes" title="📖 Classes"/>
+      <tab type="namespaces" visible="yes" title="📖 Classes"/>
     </tab>
     
     <tab type="usergroup" visible="yes" title="📖 Classes" url="annotated.html"/>

@@ -1,45 +1,17 @@
-#ifndef XDGPARSERS_H
-#define XDGPARSERS_H
+#ifndef XDGUTILS_H
+#define XDGUTILS_H
 
-#include <filesystem>
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <memory>
-#include <unordered_map>
 
 namespace XDG
 {
     /**
-     * @brief Represents a parsed INI file.
-     *
-     * The content is organized in nested unordered maps. The top-level map represents
-     * the sections, while the nested maps hold the key-value pairs within each section.
-     *
-     * All values are stored as strings.
-     *
-     * Example usage:
-     * @code
-     * const std::string &value = parsedIni["section"]["key"];
-     * @endcode
+     * @brief Utilities for data structures.
      */
-    typedef std::unordered_map<std::string,std::unordered_map<std::string, std::string>> XDGINI;
-
-    /**
-     * @brief Utilities for file parsing and handling data structures.
-     */
-    namespace XDGParsers
+    namespace XDGUtils
     {
-        /**
-         * @brief Loads and parses an INI file.
-         *
-         * @param iniFile The path to the INI file to be loaded and parsed.
-         *
-         * @return Always returns a valid pointer to an XDGINI object. The returned pointer may reference
-         *         an empty object if an error occurs.
-         */
-        std::shared_ptr<XDGINI> ParseINI(const std::filesystem::path &iniFile) noexcept;
-
         /**
          * @brief Removes leading and trailing whitespace from a string.
          *
@@ -89,4 +61,4 @@ namespace XDG
     }
 }
 
-#endif // XDGPARSERS_H
+#endif // XDGUTILS_H
