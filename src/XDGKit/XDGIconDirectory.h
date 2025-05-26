@@ -11,6 +11,8 @@
  *
  * This class encapsulates properties of an icon directory, including its size type,
  * scaling information, context, and the icons it contains.
+ *
+ * @note All icons within the directory share these properties.
  */
 class XDG::XDGIconDirectory
 {
@@ -137,6 +139,9 @@ public:
      */
     XDGIconTheme &theme() const noexcept { return m_theme; };
 
+    /**
+     * @brief Indicates whether the parent theme was loaded from cache.
+     */
     bool usingCache() const noexcept;
 
 #pragma pack(push, 1)

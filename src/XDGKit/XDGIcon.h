@@ -66,6 +66,9 @@ public:
      */
     XDGIconDirectory &directory() const noexcept { return m_directory; };
 
+    /**
+     * @brief Indicates whether the parent theme was loaded from cache.
+     */
     bool usingCache() const noexcept;
 
 private:

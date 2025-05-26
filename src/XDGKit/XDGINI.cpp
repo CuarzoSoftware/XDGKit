@@ -9,7 +9,7 @@
 
 using namespace XDG;
 
-std::shared_ptr<XDGINI> XDGINI::Load(const std::filesystem::path &iniFile) noexcept
+std::shared_ptr<XDGINI> XDGINI::LoadFile(const std::filesystem::path &iniFile) noexcept
 {
     std::shared_ptr<XDGINI> data { std::make_shared<XDGINI>() };
     std::ifstream file(iniFile);
@@ -79,7 +79,7 @@ static char *copyAndAdvanceDst(void *dst, const void *src, size_t bytes) noexcep
     return ((char*)dst) + bytes;
 }
 
-std::shared_ptr<XDG::XDGINIView> XDGINIView::Load(const std::filesystem::path &iniFile) noexcept
+std::shared_ptr<XDG::XDGINIView> XDGINIView::LoadFile(const std::filesystem::path &iniFile) noexcept
 {
     // FORMAT
     //
@@ -99,7 +99,7 @@ std::shared_ptr<XDG::XDGINIView> XDGINIView::Load(const std::filesystem::path &i
     char *pos;
     XDGINIView *data { new XDGINIView() };
     auto &ref { *data };
-    auto ini { XDGINI::Load(iniFile) };
+    auto ini { XDGINI::LoadFile(iniFile) };
 
     if (ini->empty())
         goto failFile;
@@ -179,8 +179,6 @@ std::shared_ptr<XDGINIView> XDGINIView::FromData(char *pos, size_t size) noexcep
         goto fail;
     }
 
-    // std::cerr << "NUM SECTIONS: " << nSections << "\n";
-
     for (uint64_t i = 0; i < nSections; i++)
     {
         if (!(pos = XDGUtils::readSafeAndAdvancePos(&nItems, pos, end, sizeof(nItems))))
@@ -196,8 +194,6 @@ std::shared_ptr<XDGINIView> XDGINIView::FromData(char *pos, size_t size) noexcep
             goto fail;
         }
 
-        // std::cerr << "SECTION: " << sectionName << "\n";
-
         for (uint64_t j = 0; j < nItems; j++)
         {
             char *key { pos };
@@ -206,8 +202,6 @@ std::shared_ptr<XDGINIView> XDGINIView::FromData(char *pos, size_t size) noexcep
                 error = "Failed to read item key.";
                 goto fail;
             }
-
-            // std::cerr << "Key: " << key << "\n";
 
             char *value { pos };
             if (!(pos = XDGUtils::advanceStrPosSafe(pos, end)))

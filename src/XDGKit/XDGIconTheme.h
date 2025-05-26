@@ -164,6 +164,9 @@ public:
         return m_scaledIconDirectories;
     }
 
+    /**
+     * @brief Indicates whether the theme was loaded from cache.
+     */
     bool usingCache() const noexcept { return m_usingCache; }
 
 private:

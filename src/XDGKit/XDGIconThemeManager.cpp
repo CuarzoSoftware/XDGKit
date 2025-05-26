@@ -88,7 +88,7 @@ void XDGIconThemeManager::findThemes() noexcept
                 it->second->loadCache();
 
                 if (!it->second->m_usingCache)
-                    it->second->m_indexData = std::move(*XDGINIView::Load(it->second->m_indexFilePath).get());
+                    it->second->m_indexData = std::move(*XDGINIView::LoadFile(it->second->m_indexFilePath).get());
 
                 const auto &mainSection { it->second->m_indexData.find("Icon Theme") };
 

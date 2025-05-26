@@ -2,6 +2,17 @@
 
 ### Finding Icons
 
+The following example demonstrates how to load icons from available themes.
+
+XDGKit searches for themes in the standard directories defined by the XDG specification. Additional directories can be specified for icon lookup by setting the `XDG_DATA_DIRS` environment variable **before** creating an XDGKit instance, as explained in @ref XDG::XDGIconThemeManager::searchDirs().
+
+Icon themes are indexed lazily when an icon is first searched within them. This process can be slow depending on the number of subdirectories and icons in the theme.
+
+To improve performance, XDGKit uses cache files. To generate or update the cache, run the `xdgkit-icon-theme-indexer` utility, which scans available themes and stores their information in a compact, serialized format in `~/.cache/xdgkit/icon_themes`. 
+When an application loads a theme, it first checks for an existing cache file, if none is found, it loads the theme manually. Using the cache also reduces RAM usage, as all the information is directly mapped from cached files rather than being stored in memory.
+
+Ideally, this utility should be executed at the start of a user session and whenever themes change. If a theme is added or removed while an application is running, the application will not update automatically. In such cases, the user must recreate the XDGKit instance to reflect the changes.
+
 ```cpp
 #include <XDGKit/XDGKit.h>
 #include <iostream>
@@ -10,8 +21,11 @@ using namespace XDG;
 
 int main()
 {
+    XDGKit::Options options;
+    options.useIconThemesCache = true; // This is the default value
+
     // Create an instance of XDGKit.
-    auto kit = XDGKit::Make();
+    auto kit = XDGKit::Make(options);
 
     // Search for an icon
     const XDGIcon *firefox =

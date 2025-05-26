@@ -16,9 +16,22 @@ class XDG::XDGKit
 {
 public:
 
+    /**
+     * @brief Configuration options.
+     */
     struct Options
     {
         Options() {}
+
+        /**
+         * @brief Enables icon theme caching.
+         *
+         * When set to `true`, icon themes will be loaded from cached files
+         * stored in `~/.cache/xdgkit/icon_themes`, if available. This can
+         * significantly improve performance.
+         *
+         * If `false`, the cache will be ignored, and themes will be loaded directly.
+         */
         bool useIconThemesCache { true };
     };
 
@@ -64,6 +77,9 @@ public:
         return m_dataDirs;
     }
 
+    /**
+     * @brief Retrieves the configuration options used to create this instance.
+     */
     const Options &options() const noexcept
     {
         return m_options;
