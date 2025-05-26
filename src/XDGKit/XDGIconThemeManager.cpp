@@ -341,3 +341,9 @@ const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t si
 
     return search.bestIcon;
 }
+
+void XDGIconThemeManager::swapOutCache() noexcept
+{
+    for (const auto &theme : themes())
+        theme.second->swapOutCache();
+}

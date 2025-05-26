@@ -169,6 +169,7 @@ public:
      */
     bool usingCache() const noexcept { return m_usingCache; }
 
+    void swapOutCache() noexcept;
 private:
     /**
      * @brief Clears the contents of indexData().

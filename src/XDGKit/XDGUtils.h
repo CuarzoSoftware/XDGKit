@@ -64,32 +64,27 @@ namespace XDG
         // Makes sure the string ends before end and increments by the string len + 1
         inline char *advanceStrPosSafe(char *pos, char *end) noexcept
         {
-            while (*pos != '\0')
-            {
-                if ((int64_t)end - (int64_t)pos == 0)
-                    return nullptr;
-
+            while (pos < end && *pos != '\0')
                 pos++;
-            }
 
-            return pos + 1;
+            return (pos < end) ? pos + 1 : nullptr;
         }
 
         inline char *readSafeAndAdvancePos(void *dst, void *pos, void *end, size_t size) noexcept
-        {
-            if ((int64_t)end - (int64_t)pos < (int64_t)size)
+        {   
+            if ((char*)pos + size > (char*)end)
                 return nullptr;
 
             memcpy(dst, pos, size);
-            return ((char*)pos) + size;
+            return (char*)pos + size;
         }
 
         inline char *advanceSafe(void *pos, void *end, size_t size) noexcept
         {
-            if ((int64_t)end - (int64_t)pos < (int64_t)size)
+            if ((char*)pos + size > (char*)end)
                 return nullptr;
 
-            return ((char*)pos) + size;
+            return (char*)pos + size;
         }
     }
 }

@@ -29,6 +29,12 @@ XDGIconTheme::~XDGIconTheme()
     }
 }
 
+void XDGIconTheme::swapOutCache() noexcept
+{
+    if (usingCache())
+        madvise(m_cacheMap, m_cacheMapSize, MADV_DONTNEED);
+}
+
 void XDGIconTheme::initAllIconsDir() const noexcept
 {
     m_initialized = true;
