@@ -17,7 +17,7 @@ HEADERS_INSTALL_PATH = join_paths(get_option('prefix'), get_option('includedir')
 
 # -------------- DEPENDENCIES --------------
 
-cpp                 = meson.get_compiler('cpp')
+cpp         = meson.get_compiler('cpp')
 pkg         = import('pkgconfig')
 
 # -------------- HEADERS --------------
@@ -58,4 +58,8 @@ pkg.generate(
 
 if get_option('build_examples')
     subdir('src/examples/icons')
+endif
+
+if get_option('build_icon_theme_indexer')
+    subdir('src/xdgkit-icon-theme-indexer')
 endif

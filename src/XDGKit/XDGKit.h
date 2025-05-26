@@ -16,17 +16,23 @@ class XDG::XDGKit
 {
 public:
 
+    struct Options
+    {
+        Options() {}
+        bool useIconThemesCache { true };
+    };
+
     /**
      * @brief Creates a new instance of XDGKit.
      */
-    XDGKit() noexcept;
+    XDGKit(const Options &options = Options()) noexcept;
 
     /**
      * @brief Creates a new instance of XDGKit.
      *
      * @return A shared pointer to the newly created XDGKit instance.
      */
-    static std::shared_ptr<XDGKit> Make() noexcept;
+    static std::shared_ptr<XDGKit> Make(const Options &options = Options()) noexcept;
 
     /**
      * @brief Provides access to functionality related to icon themes.
@@ -58,20 +64,9 @@ public:
         return m_dataDirs;
     }
 
-    /**
-     * @brief Retrieves the pointer of the given string in the string pool.
-     *
-     * @param string String to query.
-     * @return the pointer of the string or `nullptr` if not found.
-     */
-    const char *getString(const std::string &string) const noexcept
+    const Options &options() const noexcept
     {
-        const auto &it = m_stringPool.find(string);
-
-        if (it == m_stringPool.end())
-            return nullptr;
-
-        return it->c_str();
+        return m_options;
     }
 
 private:
@@ -79,7 +74,7 @@ private:
     friend class XDGIconThemeManager;
     friend class XDGIconTheme;
     friend class XDGIcon;
-    const char *saveOrGetString(const std::string &string, bool *inserted = nullptr) noexcept
+    std::string_view saveOrGetString(const std::string &string, bool *inserted = nullptr) noexcept
     {
         if (inserted)
         {
@@ -92,6 +87,7 @@ private:
     }
     void initHomeDir() noexcept;
     void rescanDataDirs() noexcept;
+    Options m_options;
     XDGIconThemeManager m_iconThemeManager;
     std::filesystem::path m_homeDir;
     std::vector<std::filesystem::path> m_dataDirs;

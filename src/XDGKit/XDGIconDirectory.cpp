@@ -10,6 +10,11 @@ std::filesystem::path XDGIconDirectory::dir() const noexcept
     return std::filesystem::path(m_themeDir) / m_dirName;
 }
 
+bool XDGIconDirectory::usingCache() const noexcept
+{
+    return theme().usingCache();
+}
+
 XDGKit &XDGIconDirectory::kit() const noexcept
 {
     return m_theme.kit();
@@ -17,6 +22,9 @@ XDGKit &XDGIconDirectory::kit() const noexcept
 
 void XDGIconDirectory::initIcons() noexcept
 {
+    if (usingCache())
+        return;
+
     try
     {
         static const std::unordered_set<std::string> extensions( {".png", ".svg", ".xpm"} );
@@ -26,22 +34,22 @@ void XDGIconDirectory::initIcons() noexcept
             if (!std::filesystem::is_regular_file(entry.path()) || !extensions.contains(entry.path().extension()))
                 continue;
 
-            const char *name { kit().saveOrGetString(entry.path().stem().string()) };
+            std::string_view name { kit().saveOrGetString(entry.path().stem().string()) };
 
             auto it = m_icons.find(name);
 
             if (it == m_icons.end())
             {
-                it = m_icons.emplace(name, std::shared_ptr<XDGIcon>(new XDGIcon(*this))).first;
-                it->second->m_name = it->first;
+                it = m_icons.emplace(name, *this).first;
+                it->second.m_name = it->first;
             }
 
             if (entry.path().extension() == ".png")
-                it->second->m_extensions |= XDGIcon::PNG;
+                it->second.m_extensions |= XDGIcon::PNG;
             else if (entry.path().extension() == ".svg")
-                it->second->m_extensions |= XDGIcon::SVG;
+                it->second.m_extensions |= XDGIcon::SVG;
             else
-                it->second->m_extensions |= XDGIcon::XPM;
+                it->second.m_extensions |= XDGIcon::XPM;
 
             // TODO: Load .icon info
         }

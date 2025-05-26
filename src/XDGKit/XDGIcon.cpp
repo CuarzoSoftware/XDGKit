@@ -22,6 +22,11 @@ std::filesystem::path XDGIcon::getPath(Extension ext) const noexcept
     return path;
 }
 
+bool XDGIcon::usingCache() const noexcept
+{
+    return directory().usingCache();
+}
+
 XDGKit &XDGIcon::kit() const noexcept
 {
     return m_directory.kit();

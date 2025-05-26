@@ -13,6 +13,7 @@
 class XDG::XDGIconThemeManager
 {
 public:
+
     /**
      * @brief Handle to the parent kit.
      */
@@ -41,7 +42,7 @@ public:
      * @brief Retrieves all discovered icon themes.
      *
      * @return A constant reference to an unordered map where the key is the theme's
-     *         directory basename, and the value is the corresponding XDGIconTheme object.
+     *         directory basename (e.g. "Adwaita"), and the value is the corresponding XDGIconTheme object.
      */
     const std::map<std::string, std::shared_ptr<XDGIconTheme>> &themes() const noexcept
     {
@@ -73,7 +74,7 @@ public:
 private:
     struct Search
     {
-        const char *icon;
+        std::string icon;
         bool inserted { false };
         int32_t size;
         int32_t scale;

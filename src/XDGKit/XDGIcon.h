@@ -17,7 +17,7 @@ public:
     /**
      * @brief Enumeration of supported file extensions for icons.
      */
-    enum Extension
+    enum Extension : uint32_t
     {
         PNG = static_cast<uint32_t>(1) << 0, /**< PNG file format. */
         SVG = static_cast<uint32_t>(1) << 1, /**< SVG file format. */
@@ -45,7 +45,7 @@ public:
      *
      * @return A constant reference to the icon's name.
      */
-    const char *name() const noexcept { return m_name; };
+    const std::string_view &name() const noexcept { return m_name; };
 
     /**
      * @brief Retrieves the absolute path of the icon for a specified file extension.
@@ -66,10 +66,13 @@ public:
      */
     XDGIconDirectory &directory() const noexcept { return m_directory; };
 
+    bool usingCache() const noexcept;
+
 private:
     friend class XDGIconDirectory;
+    friend class XDGIconTheme;
     uint32_t m_extensions { 0 };
-    const char *m_name;
+    std::string_view m_name;
     XDGIconDirectory &m_directory;
 };
 

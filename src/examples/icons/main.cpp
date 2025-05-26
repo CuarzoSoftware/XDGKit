@@ -12,7 +12,7 @@ static const std::vector<std::string> testIcons
     "qtcreator", "nemo", "user-info", "weather", "web-browser", "chat", "vscode",
     "date", "zoom-out", "zoom-in", "accessories-calculator", "accessories-clock",
     "application-default", "chat-symbolic", "audio-x-generic", "video-x-generic",
-    "x-office-document-template"
+    "x-office-document-template", "zoom", "store"
 };
 
 static void printMemoryUsageInMB()

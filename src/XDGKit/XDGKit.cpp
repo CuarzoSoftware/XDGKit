@@ -2,9 +2,9 @@
 
 using namespace XDG;
 
-std::shared_ptr<XDGKit> XDGKit::Make() noexcept
+std::shared_ptr<XDGKit> XDGKit::Make(const Options &options) noexcept
 {
-    return std::shared_ptr<XDGKit>(new XDGKit());
+    return std::shared_ptr<XDGKit>(new XDGKit(options));
 }
 
 void XDGKit::rescanDataDirs() noexcept
@@ -28,7 +28,8 @@ void XDGKit::rescanDataDirs() noexcept
     }
 }
 
-XDGKit::XDGKit() noexcept :
+XDGKit::XDGKit(const Options &options) noexcept :
+    m_options(options),
     m_iconThemeManager(*this)
 {
     initHomeDir();

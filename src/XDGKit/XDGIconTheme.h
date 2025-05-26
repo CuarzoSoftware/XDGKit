@@ -4,6 +4,7 @@
 #include <XDGKit/XDGIconDirectory.h>
 #include <XDGKit/XDGINI.h>
 #include <filesystem>
+#include <list>
 #include <string>
 #include <vector>
 
@@ -20,6 +21,7 @@ class XDG::XDGIconTheme
 {
 public:
     XDGIconTheme(XDGKit &kit) noexcept;
+    ~XDGIconTheme();
 
     /**
      * @brief Handle to the parent kit.
@@ -55,7 +57,7 @@ public:
      *
      * @return A constant reference to the theme's display name.
      */
-    const std::string &displayName() const noexcept
+    const std::string_view &displayName() const noexcept
     {
         return m_displayName;
     }
@@ -65,7 +67,7 @@ public:
      *
      * @return A constant reference to the theme's comment.
      */
-    const std::string &comment() const noexcept
+    const std::string_view &comment() const noexcept
     {
         return m_comment;
     }
@@ -89,7 +91,7 @@ public:
      *
      * @return A constant reference to the example icon name.
      */
-    const std::string &example() const noexcept
+    const std::string_view &example() const noexcept
     {
         return m_example;
     }
@@ -131,11 +133,40 @@ public:
      *
      * @return A constant reference to the parsed data stored in an XDGINI object.
      */
-    const XDGINI &indexData() const noexcept
+    const XDGINIView &indexData() const noexcept
     {
         return m_indexData;
     }
 
+    /**
+     * @brief Retrieves the directories containing normal icons.
+     *
+     * @return A constant reference to a vector of icon directories.
+     */
+    const std::list<XDGIconDirectory> &iconDirectories() const noexcept
+    {
+        if (!m_initialized)
+            initAllIconsDir();
+
+        return m_iconDirectories;
+    }
+
+    /**
+     * @brief Retrieves the directories containing scaled icons.
+     *
+     * @return A constant reference to a vector of scaled icon directories.
+     */
+    const std::list<XDGIconDirectory> &scaledIconDirectories() const noexcept
+    {
+        if (!m_initialized)
+            initAllIconsDir();
+
+        return m_scaledIconDirectories;
+    }
+
+    bool usingCache() const noexcept { return m_usingCache; }
+
+private:
     /**
      * @brief Clears the contents of indexData().
      *
@@ -150,50 +181,28 @@ public:
             m_indexData.clear();
     }
 
-    /**
-     * @brief Retrieves the directories containing normal icons.
-     *
-     * @return A constant reference to a vector of icon directories.
-     */
-    const std::vector<std::shared_ptr<XDGIconDirectory>> &iconDirectories() const noexcept
-    {
-        if (!m_initialized)
-            initAllIconsDir();
-
-        return m_iconDirectories;
-    }
-
-    /**
-     * @brief Retrieves the directories containing scaled icons.
-     *
-     * @return A constant reference to a vector of scaled icon directories.
-     */
-    const std::vector<std::shared_ptr<XDGIconDirectory>> &scaledIconDirectories() const noexcept
-    {
-        if (!m_initialized)
-            initAllIconsDir();
-
-        return m_scaledIconDirectories;
-    }
-
-private:
     friend class XDGIconThemeManager;
     void initAllIconsDir() const noexcept;
     void initIconsDir(const std::vector<std::string> &iconDirs, XDGIconDirectory::Type type) const noexcept;
-    mutable std::vector<std::shared_ptr<XDGIconDirectory>> m_iconDirectories;
-    mutable std::vector<std::shared_ptr<XDGIconDirectory>> m_scaledIconDirectories;
+    void loadCache() noexcept;
+    mutable std::list<XDGIconDirectory> m_iconDirectories;
+    mutable std::list<XDGIconDirectory> m_scaledIconDirectories;
     const std::string *m_name;
-    std::string m_displayName;
-    std::string m_comment;
-    std::string m_example;
+    std::string_view m_displayName;
+    std::string_view m_comment;
+    std::string_view m_example;
     mutable std::vector<std::string> m_inherits;
     mutable std::vector<std::filesystem::path> m_dirs;
     mutable std::filesystem::path m_indexFilePath;
-    mutable XDGINI m_indexData;
+    mutable XDGINIView m_indexData;
     mutable std::vector<std::string> m_iconDirNames, m_scaledIconDirNames;
     XDGKit &m_kit;
     mutable bool m_initialized { false };
     bool m_hidden { false };
+    bool m_usingCache { false };
+    void *m_cacheMap { nullptr };
+    uint64_t m_cacheMapSize { 0 };
+    int m_cacheFd { -1 };
 };
 
 #endif // XDGICONTHEME_H

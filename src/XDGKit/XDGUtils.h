@@ -1,6 +1,7 @@
 #ifndef XDGUTILS_H
 #define XDGUTILS_H
 
+#include <cstring>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -34,6 +35,7 @@ namespace XDG
          * @return A vector of strings resulting from the split operation.
          */
         std::vector<std::string> splitString(const std::string &input, char delimiter, bool trim = true) noexcept;
+        std::vector<std::string> splitString(const std::string_view &input, char delimiter, bool trim = true) noexcept;
 
         /**
          * @brief Removes duplicate elements from a vector in place.
@@ -57,6 +59,37 @@ namespace XDG
                     ++it;
                 }
             }
+        }
+
+        // Makes sure the string ends before end and increments by the string len + 1
+        inline char *advanceStrPosSafe(char *pos, char *end) noexcept
+        {
+            while (*pos != '\0')
+            {
+                if ((int64_t)end - (int64_t)pos == 0)
+                    return nullptr;
+
+                pos++;
+            }
+
+            return pos + 1;
+        }
+
+        inline char *readSafeAndAdvancePos(void *dst, void *pos, void *end, size_t size) noexcept
+        {
+            if ((int64_t)end - (int64_t)pos < (int64_t)size)
+                return nullptr;
+
+            memcpy(dst, pos, size);
+            return ((char*)pos) + size;
+        }
+
+        inline char *advanceSafe(void *pos, void *end, size_t size) noexcept
+        {
+            if ((int64_t)end - (int64_t)pos < (int64_t)size)
+                return nullptr;
+
+            return ((char*)pos) + size;
         }
     }
 }

@@ -19,7 +19,7 @@ public:
     /**
      * @brief Represents the type of the directory.
      */
-    enum Type
+    enum Type : uint32_t
     {
         Normal = static_cast<uint32_t>(1) << 0, /**< A normal icon directory. */
         Scaled = static_cast<uint32_t>(1) << 1  /**< A scaled icon directory. */
@@ -28,7 +28,7 @@ public:
     /**
      * @brief Describes the algorithm used to determine if an icon matches a given size.
      */
-    enum SizeType
+    enum SizeType : uint32_t
     {
         Fixed     = static_cast<uint32_t>(1) << 0, /**< Fixed size icons. */
         Scalable  = static_cast<uint32_t>(1) << 1, /**< Scalable icons. */
@@ -38,7 +38,7 @@ public:
     /**
      * @brief Defines the context to which icons belong.
      */
-    enum Context
+    enum Context : uint32_t
     {
         NoContext     = static_cast<uint32_t>(1) << 0, /**< No specific context. */
         Actions       = static_cast<uint32_t>(1) << 1, /**< Icons related to actions. */
@@ -60,61 +60,61 @@ public:
      *
      * @return The nominal size.
      */
-    int32_t size() const noexcept { return m_size; };
+    int32_t size() const noexcept { return m_cachePtr->size; };
 
     /**
      * @brief Retrieves the maximum nominal size of scalable icons.
      *
      * @return The maximum nominal size.
      */
-    int32_t maxSize() const noexcept { return m_maxSize; };
+    int32_t maxSize() const noexcept { return m_cachePtr->maxSize; };
 
     /**
      * @brief Retrieves the minimum nominal size of scalable icons.
      *
      * @return The minimum nominal size.
      */
-    int32_t minSize() const noexcept { return m_minSize; };
+    int32_t minSize() const noexcept { return m_cachePtr->minSize; };
 
     /**
      * @brief Retrieves the scale factor of the icons.
      *
      * @return The scale factor.
      */
-    int32_t scale() const noexcept { return m_scale; };
+    int32_t scale() const noexcept { return m_cachePtr->scale; };
 
     /**
      * @brief Retrieves the nominal size threshold for icons in the directory.
      *
      * @return The size threshold.
      */
-    int32_t threshold() const noexcept { return m_threshold; };
+    int32_t threshold() const noexcept { return m_cachePtr->threshold; };
 
     /**
      * @brief Retrieves the type of the directory.
      *
      * @return The directory type (e.g., Normal or Scaled).
      */
-    Type type() const noexcept { return m_type; };
+    Type type() const noexcept { return m_cachePtr->type; };
 
     /**
      * @brief Retrieves the size type of the icons.
      *
      * @return The size type (e.g., Fixed, Scalable, or Threshold).
      */
-    SizeType sizeType() const noexcept { return m_sizeType; };
+    SizeType sizeType() const noexcept { return m_cachePtr->sizeType; };
 
     /**
      * @brief Retrieves the context associated with the icons in the directory.
      *
      * @return The context (e.g., Actions, Devices).
      */
-    Context context() const noexcept { return m_context; };
+    Context context() const noexcept { return m_cachePtr->context; };
 
     /**
      * @brief Retrieves the directory name.
      */
-    const char *dirName() const noexcept { return m_dirName; };
+    const std::string_view &dirName() const noexcept { return m_dirName; };
 
     /**
      * @brief Retrieves the absolute path to the icon directory.
@@ -128,7 +128,7 @@ public:
      *
      * @return A constant reference to a map of icon names to their corresponding icon objects.
      */
-    const std::map<const char *, std::shared_ptr<XDGIcon>> &icons() const noexcept { return m_icons; }
+    const std::map<std::string_view, XDGIcon> &icons() const noexcept { return m_icons; }
 
     /**
      * @brief Retrieves the theme to which this directory belongs.
@@ -137,21 +137,35 @@ public:
      */
     XDGIconTheme &theme() const noexcept { return m_theme; };
 
+    bool usingCache() const noexcept;
+
+#pragma pack(push, 1)
+    struct Cache
+    {
+        int32_t size;
+        int32_t maxSize;
+        int32_t minSize;
+        int32_t scale;
+        int32_t threshold;
+        Type type;
+        SizeType sizeType;
+        Context context { NoContext };
+    };
+#pragma pack(pop)
+
+    const Cache *data() const noexcept { return m_cachePtr; };
+    const std::string_view &themeDir() const noexcept { return m_themeDir; };
 private:
     friend class XDGIconThemeManager;
     friend class XDGIconTheme;
     void initIcons() noexcept;
-    const char *m_themeDir { nullptr };
-    const char *m_dirName { nullptr };
-    int32_t m_size;
-    int32_t m_maxSize;
-    int32_t m_minSize;
-    int32_t m_scale;
-    int32_t m_threshold;
-    Type m_type;
-    SizeType m_sizeType;
-    Context m_context { NoContext };
-    std::map<const char *, std::shared_ptr<XDGIcon>> m_icons;
+    std::map<std::string_view, XDGIcon> m_icons;
+    std::string_view m_themeDir;
+    std::string_view m_dirName;
+
+    // Equal to m_notCache or to the mapped cache
+    Cache *m_cachePtr;
+    std::shared_ptr<Cache> m_ramCache;
     XDGIconTheme &m_theme;
 };
 

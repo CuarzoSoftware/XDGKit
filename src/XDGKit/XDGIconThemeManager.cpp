@@ -38,7 +38,7 @@ void XDGIconThemeManager::findThemes() noexcept
 
     try
     {
-        // Create themes with only name, dirs and index.theme
+        // Create themes with only name, dirs (all dirs where the theme is found) and index.theme (the first found)
         for (auto &searchDir : searchDirs())
         {
             if (!std::filesystem::is_directory(searchDir))
@@ -85,7 +85,11 @@ void XDGIconThemeManager::findThemes() noexcept
                 it = m_themes.erase(it);
             else
             {
-                it->second->m_indexData = std::move(*XDGINI::Load(it->second->m_indexFilePath).get());
+                it->second->loadCache();
+
+                if (!it->second->m_usingCache)
+                    it->second->m_indexData = std::move(*XDGINIView::Load(it->second->m_indexFilePath).get());
+
                 const auto &mainSection { it->second->m_indexData.find("Icon Theme") };
 
                 if (mainSection == it->second->m_indexData.end())
@@ -179,56 +183,56 @@ const XDGIcon *XDGIconThemeManager::findIconHelper(Search &search, std::shared_p
 
     for (const auto &dir : theme->scaledIconDirectories())
     {
-        if ((dir->context() & search.contexts) == 0)
+        if ((dir.context() & search.contexts) == 0)
             continue;
 
-        const auto &icon = dir->icons().find(search.icon);
+        const auto &icon = dir.icons().find(search.icon);
 
-        if (icon == dir->icons().end() || (icon->second->extensions() & search.extensions) == 0)
+        if (icon == dir.icons().end() || (icon->second.extensions() & search.extensions) == 0)
             continue;
 
-        if ((icon->second->extensions() & search.extensions & XDGIcon::SVG) != 0)
-            return icon->second.get();
+        if ((icon->second.extensions() & search.extensions & XDGIcon::SVG) != 0)
+            return &icon->second;
 
-        distance = directorySizeDistance(search, *dir);
+        distance = directorySizeDistance(search, dir);
 
         if (distance < search.bestDistance)
         {
             search.bestDistance = distance;
-            search.bestIcon = icon->second.get();
+            search.bestIcon = &icon->second;
         }
 
-        if (!directoryMatchesSize(search, *dir))
+        if (!directoryMatchesSize(search, dir))
             continue;
 
-        return icon->second.get();
+        return &icon->second;
     }
 
     for (const auto &dir : theme->iconDirectories())
     {
-        if ((dir->context() & search.contexts) == 0)
+        if ((dir.context() & search.contexts) == 0)
             continue;
 
-        const auto &icon = dir->icons().find(search.icon);
+        const auto &icon = dir.icons().find(search.icon);
 
-        if (icon == dir->icons().end() || (icon->second->extensions() & search.extensions) == 0)
+        if (icon == dir.icons().end() || (icon->second.extensions() & search.extensions) == 0)
             continue;
 
-        if ((icon->second->extensions() & search.extensions & XDGIcon::SVG) != 0)
-            return icon->second.get();
+        if ((icon->second.extensions() & search.extensions & XDGIcon::SVG) != 0)
+            return &icon->second;
 
-        distance = directorySizeDistance(search, *dir);
+        distance = directorySizeDistance(search, dir);
 
         if (distance < search.bestDistance)
         {
             search.bestDistance = distance;
-            search.bestIcon = icon->second.get();
+            search.bestIcon = &icon->second;
         }
 
-        if (!directoryMatchesSize(search, *dir))
+        if (!directoryMatchesSize(search, dir))
             continue;
 
-        return icon->second.get();
+        return &icon->second;
     }
 
 
@@ -284,7 +288,7 @@ const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t si
 {
     Search search
     {
-        .icon = nullptr,
+        .icon = icon,
         .size = size,
         .scale = scale,
         .bufferSize = size * scale,
@@ -325,7 +329,6 @@ const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t si
     search.visitedThemes.reserve(m_themes.size());
 
     const XDGIcon *found { nullptr };
-    search.icon = kit().saveOrGetString(icon, &search.inserted);
 
     for (const auto &theme : search.themes)
     {
