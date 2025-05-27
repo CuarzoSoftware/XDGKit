@@ -1,6 +1,6 @@
-%global basever 0.1.0
+%global basever 1.0.0
 %global origrel 1
-%global somajor 0
+%global somajor 1
 
 Name:           cuarzo-xdgkit
 Version:        %{basever}%{?origrel:_%{origrel}}
@@ -26,13 +26,19 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
+%package        utils
+Summary:        Utility applications for %{name}
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+
+%description    utils
+The %{name}-utils package contains utility applications for %{name}.
+
 %package        examples
 Summary:        Example applications using %{name}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description    examples
-The %{name}-examples package contains example applications using
-%{name}.
+The %{name}-examples package contains example applications using %{name}.
 
 %prep
 rm -rf repo
@@ -55,6 +61,9 @@ pushd repo
 %doc repo/BUILD repo/CHANGES repo/VERSION
 %{_libdir}/libXDGKit.so.%{somajor}
 
+%files utils
+%{_bindir}/xdgkit-icon-theme-indexer
+
 %files examples
 %{_bindir}/xdgkit-icons
 
@@ -65,6 +74,9 @@ pushd repo
 %{_libdir}/pkgconfig/XDGKit.pc
 
 %changelog
-* Sat Mar 22 2025 Eduardo Hopperdietzel <ehopperdietzel@gmail.com> - %{basever}-%{origrel}
-- Icon theme indexing and search utilities.
-- INI files parser.
+* Tue May 27 2025 Eduardo Hopperdietzel <ehopperdietzel@gmail.com> - %{basever}-%{origrel}
+- Themes can now be loaded and mapped from cache files, reducing both loading times and memory usage.
+- New xdgkit-icon-theme-indexer utility for generating cache files.
+- Replaced most std::string instances with std::string_view to enable direct mapping from cache.
+- Added XDGIconThemeManager::reloadThemes() to dynamically rescan and reload themes.
+- Added XDGIconThemeManager::evictCache() to free up memory by evicting theme data that won’t be accessed in the near future.

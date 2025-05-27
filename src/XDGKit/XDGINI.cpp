@@ -179,6 +179,8 @@ std::shared_ptr<XDGINIView> XDGINIView::FromData(char *pos, size_t size) noexcep
         goto fail;
     }
 
+    ref.reserve(std::min(nSections, 1000UL));
+
     for (uint64_t i = 0; i < nSections; i++)
     {
         if (!(pos = XDGUtils::readSafeAndAdvancePos(&nItems, pos, end, sizeof(nItems))))
@@ -193,6 +195,10 @@ std::shared_ptr<XDGINIView> XDGINIView::FromData(char *pos, size_t size) noexcep
             error = "Failed to read section name.";
             goto fail;
         }
+
+        auto &sec { ref[sectionName] };
+
+        sec.reserve(std::min(nItems, 1000UL));
 
         for (uint64_t j = 0; j < nItems; j++)
         {
@@ -209,7 +215,8 @@ std::shared_ptr<XDGINIView> XDGINIView::FromData(char *pos, size_t size) noexcep
                 error = "Failed to read item value.";
                 goto fail;
             }
-            ref[sectionName][key] = value;
+
+            sec[key] = value;
         }
     }
 
@@ -242,5 +249,3 @@ XDGINIView::~XDGINIView()
 {
     clear();
 }
-
-

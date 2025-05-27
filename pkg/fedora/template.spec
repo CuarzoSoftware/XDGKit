@@ -26,13 +26,19 @@ Requires:       %{name}%{?_isa} = %{version}-%{release}
 The %{name}-devel package contains libraries and header files for
 developing applications that use %{name}.
 
+%package        utils
+Summary:        Utility applications for %{name}
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+
+%description    utils
+The %{name}-utils package contains utility applications for %{name}.
+
 %package        examples
 Summary:        Example applications using %{name}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
 
 %description    examples
-The %{name}-examples package contains example applications using
-%{name}.
+The %{name}-examples package contains example applications using %{name}.
 
 %prep
 rm -rf repo
@@ -54,6 +60,9 @@ pushd repo
 %license repo/LICENSE
 %doc repo/BUILD repo/CHANGES repo/VERSION
 %{_libdir}/libXDGKit.so.%{somajor}
+
+%files utils
+%{_bindir}/xdgkit-icon-theme-indexer
 
 %files examples
 %{_bindir}/xdgkit-icons

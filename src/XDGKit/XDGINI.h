@@ -34,8 +34,6 @@ public:
 
     /**
      * @brief Sum of all key/value string sizes (including the '\0' terminators)
-     *
-     *
      */
     uint64_t nBytes() const noexcept { return m_nBytes; }
 private:

@@ -169,7 +169,13 @@ public:
      */
     bool usingCache() const noexcept { return m_usingCache; }
 
-    void swapOutCache() noexcept;
+    /**
+     * @brief Suggests to the OS to evict the mapped cache file from memory.
+     *
+     * Use this function when the theme is not expected to be used in the near future,
+     * helping to free up memory by prompting the OS to release the data.
+     */
+    void evictCache() noexcept;
 private:
     /**
      * @brief Clears the contents of indexData().

@@ -26,8 +26,8 @@ public:
      * @brief Retrieves the directories to search for icon themes, in order of precedence.
      *
      * The default search directories in order are:
-     * - $HOME/.icons
-     * - $HOME/.local/share/icons
+     * - ~/.icons
+     * - ~/.local/share/icons
      * - $XDG_DATA_DIRS/icons
      * - /usr/share/pixmaps
      *
@@ -82,7 +82,14 @@ public:
         const std::vector<std::string> &themes = { "" },
         uint32_t contexts = XDGIconDirectory::AnyContext) const noexcept;
 
-    void swapOutCache() noexcept;
+
+    /**
+     * @brief Suggests to the OS to evict all mapped cache files from memory.
+     *
+     * Use this function when themes are not expected to be used in the near future,
+     * helping to free up memory by prompting the OS to release the data.
+     */
+    void evictCache() noexcept;
 private:
     struct Search
     {

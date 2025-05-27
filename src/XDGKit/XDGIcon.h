@@ -9,6 +9,8 @@
  *
  * This class provides information about an icon, including its name, file extensions,
  * paths, and the directory to which it belongs.
+ *
+ * @note Most of the icon properties can be found in its respective directory()
  */
 class XDG::XDGIcon
 {

@@ -126,8 +126,6 @@ public:
     /**
      * @brief Retrieves the icons located in the directory.
      *
-     * @note Use XDKit::getString() to find the string pointer.
-     *
      * @return A constant reference to a map of icon names to their corresponding icon objects.
      */
     const std::map<std::string_view, XDGIcon> &icons() const noexcept { return m_icons; }

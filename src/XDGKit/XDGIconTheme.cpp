@@ -29,7 +29,7 @@ XDGIconTheme::~XDGIconTheme()
     }
 }
 
-void XDGIconTheme::swapOutCache() noexcept
+void XDGIconTheme::evictCache() noexcept
 {
     if (usingCache())
         madvise(m_cacheMap, m_cacheMapSize, MADV_DONTNEED);

@@ -1,6 +1,5 @@
 #include <XDGKit/XDGKit.h>
 #include <cassert>
-#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <fcntl.h>
