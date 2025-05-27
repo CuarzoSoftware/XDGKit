@@ -50,6 +50,17 @@ public:
     }
 
     /**
+     * @brief Reloads all available themes.
+     *
+     * Rescans the system and reloads all detected themes, replacing any previously loaded data.
+     *
+     * Use this function when the set of themes in the system has changed (e.g., after installation or removal).
+     *
+     * @warning All existing references to themes, theme directories, and icons will be invalidated after this call.
+     */
+    void reloadThemes() noexcept;
+
+    /**
      * @brief Searches for an icon within the specified themes.
      *
      * This function attempts to locate an icon that matches the provided criteria

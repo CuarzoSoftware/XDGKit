@@ -155,7 +155,7 @@ void XDGIconTheme::loadCache() noexcept
     if (!kit().options().useIconThemesCache)
         return;
 
-    const std::filesystem::path cacheFilePath { kit().homeDir() / ".cache/xdgkit/icon_themes" / name() };
+    std::filesystem::path cacheFilePath { std::filesystem::path("/var/cache/xdgkit/icon_themes/users") / kit().username() / name() };
     off_t off;
     uint64_t u64, numDirs, numIcons;
     uint32_t u32;
@@ -164,12 +164,21 @@ void XDGIconTheme::loadCache() noexcept
     bool boolean;
     std::list<XDGIconDirectory> *dirList;
     XDGIconDirectory::Cache *cache;
+    bool inHome { true };
+retry:
     m_usingCache = true;
     m_initialized = true;
     m_cacheFd = open(cacheFilePath.c_str(), O_RDONLY);
 
     if (m_cacheFd == -1)
     {
+        if (inHome)
+        {
+            inHome = false;
+            cacheFilePath = std::filesystem::path("/var/cache/xdgkit/icon_themes/system") / name();
+            goto retry;
+        }
+
         error = "Failed to open cache file.";
         goto fail;
     }
@@ -273,8 +282,6 @@ void XDGIconTheme::loadCache() noexcept
         goto failParse;
     }
 
-    // std::cerr << "NUM DIRS: " << numDirs << "\n";
-
     for (uint64_t i = 0; i < numDirs; i++)
     {
         // Is scaled
@@ -299,8 +306,6 @@ void XDGIconTheme::loadCache() noexcept
             error = "Failed to get theme dir.";
             goto failParse;
         }
-
-        // std::cerr << "THEME DIR: " << themeDir << "\n";
 
         // Dir name
         dirName = pos;
@@ -338,8 +343,6 @@ void XDGIconTheme::loadCache() noexcept
                 goto failParse;
             }
 
-            // std::cerr << "ICON NAME: " << iconName << "\n";
-
             // Extensions
             if (!(pos = XDGUtils::readSafeAndAdvancePos(&u32, pos, end, sizeof(u32))))
             {
@@ -367,5 +370,6 @@ failFd:
 fail:
     m_initialized = false;
     m_usingCache = false;
-    std::cerr << "[XDGKit] Failed to load cache for icon theme " << cacheFilePath << ": " << error << "\n";
+    if (name() != "default")
+        std::cerr << "[XDGKit] Failed to load cache for icon theme " << cacheFilePath << ": " << error << "\n";
 }

@@ -99,6 +99,7 @@ int main()
         }
 
         printMemoryUsageInMB();
+        kit->iconThemeManager().reloadThemes();
     }
 
     std::cout << std::endl;

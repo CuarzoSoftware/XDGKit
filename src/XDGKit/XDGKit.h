@@ -27,10 +27,10 @@ public:
          * @brief Enables icon theme caching.
          *
          * When set to `true`, icon themes will be loaded from cached files
-         * stored in `~/.cache/xdgkit/icon_themes`, if available. This can
+         * stored in `/var/cache/xdgkit/icon_themes`, if available. This can
          * significantly improve performance.
          *
-         * If `false`, the cache will be ignored, and themes will be loaded directly.
+         * If `false`, the cache files will be ignored, and themes will be loaded directly.
          */
         bool useIconThemesCache { true };
     };
@@ -43,14 +43,12 @@ public:
     /**
      * @brief Creates a new instance of XDGKit.
      *
-     * @return A shared pointer to the newly created XDGKit instance.
+     * @return A shared pointer to the newly created XDGKit instance. Never `nullptr`.
      */
     static std::shared_ptr<XDGKit> Make(const Options &options = Options()) noexcept;
 
     /**
      * @brief Provides access to functionality related to icon themes.
-     *
-     * @return A reference to the icon theme manager.
      */
     XDGIconThemeManager &iconThemeManager() noexcept
     {
@@ -58,9 +56,15 @@ public:
     }
 
     /**
+     * @brief Retrieves the current user's username.
+     */
+    const std::string &username() const noexcept
+    {
+        return m_user;
+    }
+
+    /**
      * @brief Retrieves the current user's home directory as an absolute path.
-     *
-     * @return A constant reference to the user's home directory path.
      */
     const std::filesystem::path &homeDir() const noexcept
     {
@@ -69,8 +73,6 @@ public:
 
     /**
      * @brief Retrieves valid absolute paths found in `XDG_DATA_DIRS`.
-     *
-     * @return A constant reference to a vector containing the data directory paths.
      */
     const std::vector<std::filesystem::path> &dataDirs() const noexcept
     {
@@ -105,6 +107,7 @@ private:
     void rescanDataDirs() noexcept;
     Options m_options;
     XDGIconThemeManager m_iconThemeManager;
+    std::string m_user;
     std::filesystem::path m_homeDir;
     std::vector<std::filesystem::path> m_dataDirs;
     std::unordered_set<std::string> m_stringPool;

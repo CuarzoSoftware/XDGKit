@@ -284,6 +284,17 @@ int32_t XDGIconThemeManager::directorySizeDistance(Search &search, const XDGIcon
     return std::numeric_limits<int32_t>::max() - 1;
 }
 
+void XDGIconThemeManager::reloadThemes() noexcept
+{
+    m_themes.clear();
+    m_searchDirs.clear();
+    kit().m_stringPool.clear();
+
+    kit().rescanDataDirs();
+    restoreDefaultSearchDirs();
+    findThemes();
+}
+
 const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t size, int32_t scale, uint32_t extensions, const std::vector<std::string> &themes, uint32_t contexts) const noexcept
 {
     Search search

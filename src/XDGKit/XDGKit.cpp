@@ -1,4 +1,7 @@
 #include <XDGKit/XDGKit.h>
+#include <cstring>
+#include <iostream>
+#include <pwd.h>
 
 using namespace XDG;
 
@@ -12,7 +15,15 @@ void XDGKit::rescanDataDirs() noexcept
     m_dataDirs = std::vector<std::filesystem::path>();
     m_dataDirs.reserve(16);
 
-    const char *env { std::getenv("XDG_DATA_DIRS") };
+    const char *dataDirs { getenv("XDG_DATA_DIRS") };
+
+    if (!dataDirs || strlen(dataDirs) == 0)
+    {
+        std::cout << "[XDGKit] Warning: XDG_DATA_DIRS env is empty. Falling back to /var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/\n";
+        setenv("XDG_DATA_DIRS", "/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/", 0);
+    }
+
+    const char *env { getenv("XDG_DATA_DIRS") };
     if (!env) return;
 
     const std::string pathsString { env };
@@ -40,7 +51,14 @@ XDGKit::XDGKit(const Options &options) noexcept :
 
 void XDGKit::initHomeDir() noexcept
 {
-    const char *env { std::getenv("HOME") };
-    if (!env) return;
-    m_homeDir = env;
+    passwd *pw { getpwuid(geteuid()) };
+
+    if (pw)
+    {
+        if (pw->pw_name)
+            m_user = pw->pw_name;
+
+        if (pw->pw_dir)
+            m_homeDir = pw->pw_dir;
+    }
 }
