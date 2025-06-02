@@ -1,7 +1,0 @@
-option('build_examples', 
-    type : 'boolean', 
-    value : true)
-
-option('build_icon_theme_indexer',
-    type : 'boolean',
-    value : true)
