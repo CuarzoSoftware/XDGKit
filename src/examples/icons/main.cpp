@@ -5,7 +5,7 @@
 using namespace XDG;
 
 static const std::vector<int> testSizes { 16, 32, 48, 64, 96, 128, 256, 512 };
-static const std::vector<int> testExtensions { XDGIcon::SVG, XDGIcon::PNG, XDGIcon::XPM };
+static const std::vector<int> testExtensions { XDGIcon::SVG, XDGIcon::PNG  };
 static const std::vector<std::string> testIcons
 {
     "firefox", "code", "gedit", "foot", "spotify", "google-chrome", "discord",
@@ -103,7 +103,7 @@ int main()
 
     std::cout << std::endl;
     std::cout << "Themes Found:\t\t" << kit->iconThemeManager().themes().size() << "\n";
-    std::cout << "Icons Found:\t\t" << found << "/" << count << "\n";
+    std::cout << "Lookup test results:\t" << found << "/" << count << " icons found\n";
     std::cout << "Indexing Time:\t\t" << indexingTimeMs << " ms\n";
     std::cout << "Max Lookup Time:\t" << maxTimeMs << " ms\n";
     std::cout << "Avg Lookup Time:\t" << sumTimeMs/count << " ms" << std::endl;

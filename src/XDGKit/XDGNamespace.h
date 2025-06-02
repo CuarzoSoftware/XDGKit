@@ -13,6 +13,7 @@ namespace XDG
     class XDGIcon;
     class XDGINI;
     class XDGINIView;
+    class XDGLog;
     struct XDGIRect;
     struct XDGIPoint;
 };

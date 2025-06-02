@@ -1,6 +1,6 @@
 #include <XDGKit/XDGKit.h>
+#include <XDGKit/XDGLog.h>
 #include <cstring>
-#include <iostream>
 #include <pwd.h>
 
 using namespace XDG;
@@ -19,7 +19,7 @@ void XDGKit::rescanDataDirs() noexcept
 
     if (!dataDirs || strlen(dataDirs) == 0)
     {
-        std::cout << "[XDGKit] Warning: XDG_DATA_DIRS env is empty. Falling back to /var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/\n";
+        XDGLog::warning("XDG_DATA_DIRS env is empty. Falling back to /var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/\n");
         setenv("XDG_DATA_DIRS", "/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/", 0);
     }
 
@@ -43,6 +43,7 @@ XDGKit::XDGKit(const Options &options) noexcept :
     m_options(options),
     m_iconThemeManager(*this)
 {
+    XDGLog::init();
     initHomeDir();
     rescanDataDirs();
     iconThemeManager().restoreDefaultSearchDirs();

@@ -204,6 +204,8 @@ static void saveCache(const std::string &username)
 
 int main()
 {
+    setenv("XDGKIT_DEBUG", "3", 0);
+
     if (getuid() != 0)
     {
         std::cerr << "Error: Elevated permissions are required to modify " << cacheDir.string() << ". Try running the command as the root user.\n";

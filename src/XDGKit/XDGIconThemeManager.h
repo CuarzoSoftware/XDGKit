@@ -4,7 +4,6 @@
 #include <XDGKit/XDGIconTheme.h>
 #include <unordered_set>
 #include <filesystem>
-#include <map>
 #include <vector>
 
 /**
@@ -26,6 +25,7 @@ public:
      * @brief Retrieves the directories to search for icon themes, in order of precedence.
      *
      * The default search directories in order are:
+     *
      * - ~/.icons
      * - ~/.local/share/icons
      * - $XDG_DATA_DIRS/icons
@@ -44,7 +44,7 @@ public:
      * @return A constant reference to a map where the key is the theme's
      *         directory basename (e.g. "Adwaita"), and the value is the corresponding XDGIconTheme object.
      */
-    const std::map<std::string, std::shared_ptr<XDGIconTheme>> &themes() const noexcept
+    const std::unordered_map<std::string, std::shared_ptr<XDGIconTheme>> &themes() const noexcept
     {
         return m_themes;
     }
@@ -66,6 +66,9 @@ public:
      * This function attempts to locate an icon that matches the provided criteria
      * (name, size, scale, and extensions) within the given list of themes.
      *
+     * @warning It is not recommended to keep a reference to the returned icon, as it will be invalidated
+     *          when `reloadThemes()` is called or when the `XDGKit` instance is removed.
+     *
      * @param icon The name of the icon to search for.
      * @param size The desired nominal size of the icon.
      * @param scale The scale factor of the icon. Defaults to 1.
@@ -81,7 +84,6 @@ public:
         uint32_t extensions = XDGIcon::PNG | XDGIcon::SVG,
         const std::vector<std::string> &themes = { "" },
         uint32_t contexts = XDGIconDirectory::AnyContext) const noexcept;
-
 
     /**
      * @brief Suggests to the OS to evict all mapped cache files from memory.
@@ -114,7 +116,7 @@ private:
     bool directoryMatchesSize(Search &search, const XDGIconDirectory &dir) const noexcept;
     int32_t directorySizeDistance(Search &search, const XDGIconDirectory &dir) const noexcept;
     std::vector<std::filesystem::path> m_searchDirs;
-    std::map<std::string, std::shared_ptr<XDGIconTheme>> m_themes;
+    std::unordered_map<std::string, std::shared_ptr<XDGIconTheme>> m_themes;
     XDGKit &m_kit;
 };
 

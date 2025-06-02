@@ -1,17 +1,14 @@
 #include <XDGKit/XDGUtils.h>
+#include <XDGKit/XDGLog.h>
 #include <XDGKit/XDGKit.h>
 #include <XDGKit/XDGIconTheme.h>
 #include <XDGKit/XDGIconDirectory.h>
 #include <fcntl.h>
-#include <iostream>
 #include <sys/mman.h>
 
 using namespace XDG;
 
-XDGIconTheme::XDGIconTheme(XDGKit &kit) noexcept :
-    m_kit(kit)
-{
-}
+XDGIconTheme::XDGIconTheme(XDGKit &kit) noexcept : m_kit(kit) {}
 
 XDGIconTheme::~XDGIconTheme()
 {
@@ -155,7 +152,13 @@ void XDGIconTheme::loadCache() noexcept
     if (!kit().options().useIconThemesCache)
         return;
 
-    std::filesystem::path cacheFilePath { std::filesystem::path("/var/cache/xdgkit/icon_themes/users") / kit().username() / name() };
+    const bool isUser { m_indexFilePath.string().starts_with("/home") };
+
+    std::filesystem::path cacheFilePath {
+        isUser ?
+        std::filesystem::path("/var/cache/xdgkit/icon_themes/users") / kit().username() / name() :
+        std::filesystem::path("/var/cache/xdgkit/icon_themes/system") / name()
+    };
     off_t off;
     uint64_t u64, numDirs, numIcons;
     uint32_t u32;
@@ -164,21 +167,16 @@ void XDGIconTheme::loadCache() noexcept
     bool boolean;
     std::list<XDGIconDirectory> *dirList;
     XDGIconDirectory::Cache *cache;
-    bool inHome { true };
-retry:
+
+    if (!std::filesystem::exists(cacheFilePath))
+        return;
+
     m_usingCache = true;
     m_initialized = true;
     m_cacheFd = open(cacheFilePath.c_str(), O_RDONLY);
 
     if (m_cacheFd == -1)
     {
-        if (inHome)
-        {
-            inHome = false;
-            cacheFilePath = std::filesystem::path("/var/cache/xdgkit/icon_themes/system") / name();
-            goto retry;
-        }
-
         error = "Failed to open cache file.";
         goto fail;
     }
@@ -371,5 +369,5 @@ fail:
     m_initialized = false;
     m_usingCache = false;
     if (name() != "default")
-        std::cerr << "[XDGKit] Failed to load cache for icon theme " << cacheFilePath << ": " << error << "\n";
+        XDGLog::warning("Failed to load cache for icon theme %s : %s", cacheFilePath.c_str(), error);
 }

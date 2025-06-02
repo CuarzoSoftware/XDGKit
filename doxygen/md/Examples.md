@@ -11,7 +11,7 @@ Icon themes are indexed lazily when an icon is first searched within them. This 
 To improve performance, XDGKit uses cache files. To generate or update the cache, run the `xdgkit-icon-theme-indexer` utility, which scans available themes and stores their information in a compact, serialized format under `/var/cache/xdgkit/icon_themes`. 
 When XDGKkit searches for an icon within a theme for the first time, it first checks for an existing cache file. If no cache file is found, the application loads and indexes the information manually (slow). Using the cache also reduces RAM usage, as all the information is directly mapped from cached files rather than being stored in memory.
 
-Ideally, the indexer utility should be executed at the start of a user session and whenever themes change. If a theme is added or removed while an application is running, the application will not update automatically. In such cases, the user can call XDG::XDGIconThemeManager::reloadThemes().
+If a theme is added or removed while an application is running, the application will not update automatically. In such cases, the user can call XDG::XDGIconThemeManager::reloadThemes().
 
 ```cpp
 #include <XDGKit/XDGKit.h>

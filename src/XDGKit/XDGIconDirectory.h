@@ -4,7 +4,7 @@
 #include <XDGKit/XDGIcon.h>
 #include <cstdint>
 #include <filesystem>
-#include <map>
+#include <unordered_map>
 
 /**
  * @brief Group of icons with shared properties.
@@ -128,7 +128,7 @@ public:
      *
      * @return A constant reference to a map of icon names to their corresponding icon objects.
      */
-    const std::map<std::string_view, XDGIcon> &icons() const noexcept { return m_icons; }
+    const std::unordered_map<std::string_view, XDGIcon> &icons() const noexcept { return m_icons; }
 
     /**
      * @brief Retrieves the theme to which this directory belongs.
@@ -162,7 +162,7 @@ private:
     friend class XDGIconThemeManager;
     friend class XDGIconTheme;
     void initIcons() noexcept;
-    std::map<std::string_view, XDGIcon> m_icons;
+    std::unordered_map<std::string_view, XDGIcon> m_icons;
     std::string_view m_themeDir;
     std::string_view m_dirName;
 

@@ -15,6 +15,8 @@ XDGKit is a C++ library providing utilities for working with XDG standards.
 
 - **Icon Themes**: Tools for searching icons, adhering to the [XDG Icon Theme Specification v0.13](https://specifications.freedesktop.org/icon-theme-spec/latest/#overview).
 
+> This library does not load icons into memory. Instead, it provides fast lookups for icon metadata, including paths, extensions, sizes, and other relevant details.
+
 ## Links
 
 * [📖 C++ API Documentation](https://cuarzosoftware.github.io/XDGKit/annotated.html)

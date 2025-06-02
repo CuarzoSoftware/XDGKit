@@ -1,9 +1,9 @@
 #include <XDGKit/XDGUtils.h>
+#include <XDGKit/XDGLog.h>
 #include <XDGKit/XDGINI.h>
 #include <cassert>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -128,8 +128,6 @@ std::shared_ptr<XDG::XDGINIView> XDGINIView::LoadFile(const std::filesystem::pat
     val = ini->size();
     pos = copyAndAdvanceDst(pos, &val, sizeof(val));
 
-    // std::cerr << "NUM SECTIONS: " << val << "\n";
-
     for (auto &section : *ini)
     {
         // Num of items
@@ -222,7 +220,7 @@ std::shared_ptr<XDGINIView> XDGINIView::FromData(char *pos, size_t size) noexcep
 
     return std::shared_ptr<XDGINIView>(data);
 fail:
-    std::cerr << "[XDGKit][XDGINIView::FromData] Failed to parse serialized INI file (size = " << size << "): " << error << "\n";
+    XDGLog::error("[XDGINIView::FromData] Failed to parse serialized INI file (size = %zu): %s", size, error);
     data->clear();
     return std::shared_ptr<XDGINIView>(data);
 }
