@@ -76,6 +76,7 @@ static void saveCache(const std::string &username)
 
     XDGKit::Options options;
     options.useIconThemesCache = false;
+    options.autoReloadCache = false;
     auto kit { XDGKit::Make(options) };
 
     if (!isSystem && seteuid(0) != 0)
@@ -202,8 +203,30 @@ static void saveCache(const std::string &username)
     }
 }
 
-int main()
+void showHelp()
 {
+    std::cout << "\nXDGKit Icon Theme Indexer\n\n"
+              << "This program generates cache files for icon themes, improving indexing performance in XDGKit.\n"
+              << "It should be used each time a theme is added or removed from the system. Running it while apps\n"
+              << "are mapping current cache files is safe.\n\n"
+              << "Cache files are stored in:\n"
+              << "  - System themes: /var/cache/xdgkit/icon_themes/system\n"
+              << "  - User themes: /var/cache/xdgkit/icon_themes/<user>\n\n"
+              << "Additional search paths can be specified using the XDG_DATA_DIRS environment variable.\n";
+}
+
+int main(int argc, char* argv[])
+{
+    for (int i = 1; i < argc; i++)
+    {
+        std::string_view arg = argv[i];
+        if (arg == "-h" || arg == "--help")
+        {
+            showHelp();
+            return 0;
+        }
+    }
+
     setenv("XDGKIT_DEBUG", "3", 0);
 
     if (getuid() != 0)

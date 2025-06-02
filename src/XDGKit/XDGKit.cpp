@@ -48,6 +48,7 @@ XDGKit::XDGKit(const Options &options) noexcept :
     rescanDataDirs();
     iconThemeManager().restoreDefaultSearchDirs();
     iconThemeManager().findThemes();
+    iconThemeManager().updateCacheSerial();
 }
 
 void XDGKit::initHomeDir() noexcept

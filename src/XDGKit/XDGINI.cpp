@@ -227,7 +227,7 @@ fail:
 
 void XDGINIView::clear() noexcept
 {
-    std::unordered_map<std::string_view, std::unordered_map<std::string_view, std::string_view>>::clear();
+    XDGMap<std::string_view, XDGMap<std::string_view, std::string_view>>::clear();
 
     if (m_map)
     {

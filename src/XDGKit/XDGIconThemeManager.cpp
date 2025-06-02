@@ -1,3 +1,4 @@
+#include "XDGKit/XDGLog.h"
 #include <XDGKit/XDGIconThemeManager.h>
 #include <XDGKit/XDGKit.h>
 #include <XDGKit/XDGUtils.h>
@@ -172,6 +173,14 @@ void XDGIconThemeManager::sanitizeThemes() noexcept
     }
 }
 
+void XDGIconThemeManager::updateCacheSerial()
+{
+    try {
+        m_cacheSerial = std::filesystem::last_write_time("/var/cache/xdgkit/icon_themes");
+    } catch (...) {
+    }
+}
+
 const XDGIcon *XDGIconThemeManager::findIconHelper(Search &search, std::shared_ptr<XDGIconTheme> theme) const noexcept
 {
     if (search.visitedThemes.contains(theme))
@@ -284,8 +293,21 @@ int32_t XDGIconThemeManager::directorySizeDistance(Search &search, const XDGIcon
     return std::numeric_limits<int32_t>::max() - 1;
 }
 
-void XDGIconThemeManager::reloadThemes() noexcept
+bool XDGIconThemeManager::reloadThemes(bool onlyIfCacheChanged) noexcept
 {
+    if (onlyIfCacheChanged)
+    {
+        const auto currentCacheSerial { m_cacheSerial };
+        updateCacheSerial();
+
+        if (m_cacheSerial == currentCacheSerial)
+            return false;
+
+        XDGLog::debug("The icons theme cache changed.");
+    }
+    else
+        updateCacheSerial();
+
     m_themes.clear();
     m_searchDirs.clear();
     kit().m_stringPool.clear();
@@ -293,9 +315,11 @@ void XDGIconThemeManager::reloadThemes() noexcept
     kit().rescanDataDirs();
     restoreDefaultSearchDirs();
     findThemes();
+    XDGLog::debug("Icon themes reloaded.");
+    return true;
 }
 
-const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t size, int32_t scale, uint32_t extensions, const std::vector<std::string> &themes, uint32_t contexts) const noexcept
+const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t size, int32_t scale, uint32_t extensions, const std::vector<std::string> &themes, uint32_t contexts) noexcept
 {
     Search search
     {
@@ -308,6 +332,9 @@ const XDGIcon *XDGIconThemeManager::findIcon(const std::string &icon, int32_t si
         .themes = {},
         .visitedThemes = {}
     };
+
+    if (kit().options().useIconThemesCache && kit().options().autoReloadCache)
+        reloadThemes(true);
 
     if ((extensions & (1 | 2 | 4)) == 0 || scale <= 0 || themes.empty() || (contexts & XDGIconDirectory::AnyContext) == 0)
         return nullptr;

@@ -23,7 +23,7 @@ pkg         = import('pkgconfig')
 # -------------- HEADERS --------------
 
 header_dirs = [
-    ['./src/XDGKit', ''],
+    ['./src/XDGKit', '']
 ]
 
 foreach header_dir : header_dirs

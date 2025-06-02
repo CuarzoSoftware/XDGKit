@@ -2,9 +2,9 @@
 #define XDGINI_H
 
 #include <XDGKit/XDGNamespace.h>
+#include <XDGKit/XDGMap.h>
 #include <filesystem>
 #include <string>
-#include <unordered_map>
 
 /**
  * @brief A parsed INI file.
@@ -19,7 +19,7 @@
  * const std::string &value = parsedIni["section"]["key"];
  * @endcode
  */
-class XDG::XDGINI : public std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
+class XDG::XDGINI : public XDGMap<std::string, XDGMap<std::string, std::string>>
 {
 public:
     /**
@@ -48,7 +48,7 @@ private:
  *
  * Unlike XDGINI, this class provides a memory view of data stored in a serialized format.
  */
-class XDG::XDGINIView : public std::unordered_map<std::string_view, std::unordered_map<std::string_view, std::string_view>>
+class XDG::XDGINIView : public XDGMap<std::string_view, XDGMap<std::string_view, std::string_view>>
 {
 public:
     /**
@@ -86,7 +86,7 @@ public:
         if (this != &other)
         {
             clear();
-            std::unordered_map<std::string_view, std::unordered_map<std::string_view, std::string_view>>::operator=(std::move(other));
+            XDGMap<std::string_view, XDGMap<std::string_view, std::string_view>>::operator=(std::move(other));
             m_map = other.m_map;
             m_mapSize = other.m_mapSize;
             m_tmp = other.m_tmp;

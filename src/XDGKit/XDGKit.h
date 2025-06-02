@@ -33,6 +33,16 @@ public:
          * If `false`, the cache files will be ignored, and themes will be loaded directly.
          */
         bool useIconThemesCache { true };
+
+        /**
+         * @brief Automatically reload icon themes.
+         *
+         * Icon themes are reloaded when the cache has changed.
+         *
+         * @note Cache changes are only checked when `XDG::XDGIconThemeManager::findIcon()` is called.
+         *       To manually trigger a check, use `XDG::XDGIconThemeManager::reloadThemes(true)`.
+         */
+        bool autoReloadCache { true };
     };
 
     /**

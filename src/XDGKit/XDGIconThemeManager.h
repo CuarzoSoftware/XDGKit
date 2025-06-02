@@ -2,6 +2,7 @@
 #define XDGICONTHEMEMANAGER_H
 
 #include <XDGKit/XDGIconTheme.h>
+#include <XDGKit/XDGMap.h>
 #include <unordered_set>
 #include <filesystem>
 #include <vector>
@@ -44,7 +45,7 @@ public:
      * @return A constant reference to a map where the key is the theme's
      *         directory basename (e.g. "Adwaita"), and the value is the corresponding XDGIconTheme object.
      */
-    const std::unordered_map<std::string, std::shared_ptr<XDGIconTheme>> &themes() const noexcept
+    const XDGMap<std::string, std::shared_ptr<XDGIconTheme>> &themes() const noexcept
     {
         return m_themes;
     }
@@ -52,13 +53,17 @@ public:
     /**
      * @brief Reloads all available themes.
      *
-     * Rescans the system and reloads all detected themes, replacing any previously loaded data.
+     * Scans the system and reloads all detected themes, replacing any previously loaded data.
      *
-     * Use this function when the set of themes in the system has changed (e.g., after installation or removal).
+     * Use this function when the set of themes has changed (e.g., after installation or removal).
      *
      * @warning All existing references to themes, theme directories, and icons will be invalidated after this call.
+     *
+     * @param onlyIfCacheChanged If `true`, themes will only be reloaded if a change in the cache is detected.
+     *
+     * @return `true` if themes were reloaded, `false` otherwise.
      */
-    void reloadThemes() noexcept;
+    bool reloadThemes(bool onlyIfCacheChanged = false) noexcept;
 
     /**
      * @brief Searches for an icon within the specified themes.
@@ -83,7 +88,7 @@ public:
         int32_t size, int32_t scale = 1,
         uint32_t extensions = XDGIcon::PNG | XDGIcon::SVG,
         const std::vector<std::string> &themes = { "" },
-        uint32_t contexts = XDGIconDirectory::AnyContext) const noexcept;
+        uint32_t contexts = XDGIconDirectory::AnyContext) noexcept;
 
     /**
      * @brief Suggests to the OS to evict all mapped cache files from memory.
@@ -112,11 +117,13 @@ private:
     void restoreDefaultSearchDirs() noexcept;
     void findThemes() noexcept;
     void sanitizeThemes() noexcept;
+    void updateCacheSerial();
     const XDGIcon *findIconHelper(Search &search, std::shared_ptr<XDGIconTheme> theme) const noexcept;
     bool directoryMatchesSize(Search &search, const XDGIconDirectory &dir) const noexcept;
     int32_t directorySizeDistance(Search &search, const XDGIconDirectory &dir) const noexcept;
     std::vector<std::filesystem::path> m_searchDirs;
-    std::unordered_map<std::string, std::shared_ptr<XDGIconTheme>> m_themes;
+    XDGMap<std::string, std::shared_ptr<XDGIconTheme>> m_themes;
+    std::filesystem::file_time_type m_cacheSerial;
     XDGKit &m_kit;
 };
 
