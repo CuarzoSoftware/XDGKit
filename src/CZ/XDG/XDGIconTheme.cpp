@@ -1,12 +1,12 @@
-#include <XDGKit/XDGUtils.h>
-#include <XDGKit/XDGLog.h>
-#include <XDGKit/XDGKit.h>
-#include <XDGKit/XDGIconTheme.h>
-#include <XDGKit/XDGIconDirectory.h>
+#include <CZ/XDG/XDGUtils.h>
+#include <CZ/XDG/XDGLog.h>
+#include <CZ/XDG/XDGKit.h>
+#include <CZ/XDG/XDGIconTheme.h>
+#include <CZ/XDG/XDGIconDirectory.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 
-using namespace XDG;
+using namespace CZ;
 
 XDGIconTheme::XDGIconTheme(XDGKit &kit) noexcept : m_kit(kit) {}
 
@@ -163,7 +163,7 @@ void XDGIconTheme::loadCache() noexcept
     uint64_t u64, numDirs, numIcons;
     uint32_t u32;
     char *pos, *end, *str, *themeDir, *dirName, *iconName;
-    const char *error {"Unknown error."};
+    const char *error { "Unknown error." };
     bool boolean;
     std::list<XDGIconDirectory> *dirList;
     XDGIconDirectory::Cache *cache;
@@ -369,5 +369,5 @@ fail:
     m_initialized = false;
     m_usingCache = false;
     if (name() != "default")
-        XDGLog::warning("Failed to load cache for icon theme %s : %s", cacheFilePath.c_str(), error);
+        XDGLog(CZWarning, CZLN, "Failed to load cache for icon theme {} : {}", cacheFilePath.c_str(), error);
 }

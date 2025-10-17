@@ -1,7 +1,8 @@
-#include <XDGKit/XDGIcon.h>
-#include <XDGKit/XDGIconDirectory.h>
+#include <CZ/XDG/XDGKit.h>
+#include <CZ/XDG/XDGIcon.h>
+#include <CZ/XDG/XDGIconDirectory.h>
 
-using namespace XDG;
+using namespace CZ;
 
 std::filesystem::path XDGIcon::getPath(Extension ext) const noexcept
 {

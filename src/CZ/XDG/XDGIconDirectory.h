@@ -1,8 +1,8 @@
 #ifndef XDGICONDIRECTORY_H
 #define XDGICONDIRECTORY_H
 
-#include <XDGKit/XDGIcon.h>
-#include <XDGKit/XDGMap.h>
+#include <CZ/XDG/XDGIcon.h>
+#include <CZ/XDG/XDGMap.h>
 #include <cstdint>
 #include <filesystem>
 
@@ -14,7 +14,7 @@
  *
  * @note All icons within the directory share these properties.
  */
-class XDG::XDGIconDirectory
+class CZ::XDGIconDirectory
 {
 public:
 

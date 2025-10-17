@@ -1,4 +1,4 @@
-#include <XDGKit/XDGKit.h>
+#include <CZ/XDG/XDGKit.h>
 #include <cassert>
 #include <iostream>
 #include <fstream>
@@ -38,7 +38,7 @@ For system themes : /var/cache/xdgkit/icon_themes/system
 For user themes   : /var/cache/xdgkit/icon_themes/users/<username>
 */
 
-using namespace XDG;
+using namespace CZ;
 
 static const std::filesystem::path cacheDir { "/var/cache/xdgkit/icon_themes" };
 static const std::filesystem::path systemCacheDir { cacheDir / "system" };

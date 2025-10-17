@@ -1,8 +1,8 @@
 #ifndef XDGINI_H
 #define XDGINI_H
 
-#include <XDGKit/XDGNamespace.h>
-#include <XDGKit/XDGMap.h>
+#include <CZ/XDG/XDG.h>
+#include <CZ/XDG/XDGMap.h>
 #include <filesystem>
 #include <string>
 
@@ -19,7 +19,7 @@
  * const std::string &value = parsedIni["section"]["key"];
  * @endcode
  */
-class XDG::XDGINI : public XDGMap<std::string, XDGMap<std::string, std::string>>
+class CZ::XDGINI : public XDGMap<std::string, XDGMap<std::string, std::string>>
 {
 public:
     /**
@@ -48,7 +48,7 @@ private:
  *
  * Unlike XDGINI, this class provides a memory view of data stored in a serialized format.
  */
-class XDG::XDGINIView : public XDGMap<std::string_view, XDGMap<std::string_view, std::string_view>>
+class CZ::XDGINIView : public XDGMap<std::string_view, XDGMap<std::string_view, std::string_view>>
 {
 public:
     /**

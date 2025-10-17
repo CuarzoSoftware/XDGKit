@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace XDG
+namespace CZ
 {
     /**
      * @brief Utilities for data structures.

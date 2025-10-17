@@ -4,29 +4,29 @@
 
 The following example demonstrates how to load icons from available themes.
 
-XDGKit searches for themes in the standard directories defined by the XDG specification. Additional directories can be specified for icon lookup by setting the `XDG_DATA_DIRS` environment variable **before** creating an XDGKit instance, as explained in XDG::XDGIconThemeManager::searchDirs().
+XDGKit searches for themes in the standard directories defined by the XDG specification. Additional directories can be specified for icon lookup by setting the `XDG_DATA_DIRS` environment variable **before** creating an XDGKit instance, as explained in CZ::XDGIconThemeManager::searchDirs().
 
 Icon themes are indexed lazily when an icon is first searched within them. This process can be slow depending on the number of subdirectories and icons in the theme.
 
-To improve performance, XDGKit uses cache files. To generate or update the cache, run the `xdgkit-icon-theme-indexer` utility, which scans available themes and stores their information in a compact, serialized format under `/var/cache/xdgkit/icon_themes`. 
+To improve performance, XDGKit uses cache files. To generate or update the cache, run the `xdgkit-icon-theme-indexer` utility, which scans available themes and stores their information in a compact, serialized format under `/var/cache/xdgkit/icon_themes`.
 When XDGKkit searches for an icon within a theme for the first time, it first checks for an existing cache file. If no cache file is found, the application loads and indexes the information manually (slow). Using the cache also reduces RAM usage, as all the information is directly mapped from cached files rather than being stored in memory.
 
 ```cpp
-#include <XDGKit/XDGKit.h>
+#include <CZ/XDG/XDGKit.h>
 #include <iostream>
 
-using namespace XDG;
+using namespace CZ;
 
 int main()
 {
     XDGKit::Options options;
-    
+
     // Load themes from cache when possible
     options.useIconThemesCache = true;
-    
+
     // Automatically reload themes if a cache update is detected
     options.autoReloadCache = true;
-    
+
     // Create an instance of XDGKit.
     auto kit = XDGKit::Make(options);
 

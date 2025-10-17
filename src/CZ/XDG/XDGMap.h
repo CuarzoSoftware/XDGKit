@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 
-namespace XDG
+namespace CZ
 {
     /**
      * @brief Alias for std::unordered_map

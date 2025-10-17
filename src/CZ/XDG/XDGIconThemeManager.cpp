@@ -1,9 +1,9 @@
-#include "XDGKit/XDGLog.h"
-#include <XDGKit/XDGIconThemeManager.h>
-#include <XDGKit/XDGKit.h>
-#include <XDGKit/XDGUtils.h>
+#include <CZ/XDG/XDGLog.h>
+#include <CZ/XDG/XDGIconThemeManager.h>
+#include <CZ/XDG/XDGKit.h>
+#include <CZ/XDG/XDGUtils.h>
 
-using namespace XDG;
+using namespace CZ;
 
 void XDGIconThemeManager::restoreDefaultSearchDirs() noexcept
 {
@@ -303,7 +303,7 @@ bool XDGIconThemeManager::reloadThemes(bool onlyIfCacheChanged) noexcept
         if (m_cacheSerial == currentCacheSerial)
             return false;
 
-        XDGLog::debug("The icons theme cache changed.");
+        XDGLog(CZDebug, CZLN, "The icons theme cache changed");
     }
     else
         updateCacheSerial();
@@ -315,7 +315,7 @@ bool XDGIconThemeManager::reloadThemes(bool onlyIfCacheChanged) noexcept
     kit().rescanDataDirs();
     restoreDefaultSearchDirs();
     findThemes();
-    XDGLog::debug("Icon themes reloaded.");
+    XDGLog(CZInfo, CZLN, "Icon themes reloaded");
     return true;
 }
 

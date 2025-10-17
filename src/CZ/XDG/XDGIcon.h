@@ -1,7 +1,7 @@
 #ifndef XDGICON_H
 #define XDGICON_H
 
-#include <XDGKit/XDGIRect.h>
+#include <CZ/XDG/XDG.h>
 #include <filesystem>
 
 /**
@@ -12,7 +12,7 @@
  *
  * @note Most of the icon properties can be found in its respective directory()
  */
-class XDG::XDGIcon
+class CZ::XDGIcon
 {
 public:
 

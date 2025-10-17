@@ -1,7 +1,7 @@
 #ifndef XDGKIT_H
 #define XDGKIT_H
 
-#include <XDGKit/XDGIconThemeManager.h>
+#include <CZ/XDG/XDGIconThemeManager.h>
 #include <filesystem>
 #include <memory>
 #include <unordered_set>
@@ -12,7 +12,7 @@
  *
  * When destroyed, all references to themes and icons are invalidated.
  */
-class XDG::XDGKit
+class CZ::XDGKit
 {
 public:
 
@@ -39,8 +39,8 @@ public:
          *
          * Icon themes are reloaded when the cache has changed.
          *
-         * @note Cache changes are only checked when `XDG::XDGIconThemeManager::findIcon()` is called.
-         *       To manually trigger a check, use `XDG::XDGIconThemeManager::reloadThemes(true)`.
+         * @note Cache changes are only checked when `CZ::XDGIconThemeManager::findIcon()` is called.
+         *       To manually trigger a check, use `CZ::XDGIconThemeManager::reloadThemes(true)`.
          */
         bool autoReloadCache { true };
     };

@@ -19,30 +19,30 @@ XDGKit is a C++ library providing utilities for working with XDG standards.
 
 ## Links
 
-* [📖 C++ API Documentation](https://cuarzosoftware.github.io/XDGKit/annotated.html)
-* [🕹️ Examples](https://cuarzosoftware.github.io/XDGKit/examples_page.html)
-* [📦 Downloads](https://cuarzosoftware.github.io/XDGKit/downloads_page.html)
-* [⚙️ Environment](https://cuarzosoftware.github.io/XDGKit/environment_page.html)
-* [💬 Contact](https://cuarzosoftware.github.io/XDGKit/contact_page.html)
+- [📖 C++ API Documentation](https://cuarzosoftware.github.io/XDGKit/annotated.html)
+- [🕹️ Examples](https://cuarzosoftware.github.io/XDGKit/examples_page.html)
+- [📦 Downloads](https://cuarzosoftware.github.io/XDGKit/downloads_page.html)
+- [⚙️ Environment](https://cuarzosoftware.github.io/XDGKit/environment_page.html)
+- [💬 Contact](https://cuarzosoftware.github.io/XDGKit/contact_page.html)
 
 ### Example
 
 ```cpp
-#include <XDGKit/XDGKit.h>
+#include <CZ/XDG/XDGKit.h>
 #include <iostream>
 
-using namespace XDG;
+using namespace CZ;
 
 int main()
 {
     XDGKit::Options options;
-    
+
     // Load themes from cache when possible
     options.useIconThemesCache = true;
-    
+
     // Automatically reload themes if a cache update is detected
     options.autoReloadCache = true;
-    
+
     // Create an instance of XDGKit.
     auto kit = XDGKit::Make(options);
 

@@ -1,7 +1,7 @@
 executable(
-    'xdgkit-icons',
+    'cz-xdgkit-icon-theme-indexer',
     sources : ['main.cpp'],
     dependencies : [
-        xdgkit_dep
+        cz_xdgkit_dep
     ],
     install : true)

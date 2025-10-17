@@ -1,9 +1,9 @@
-#include <XDGKit/XDGIconDirectory.h>
-#include <XDGKit/XDGIcon.h>
-#include <XDGKit/XDGKit.h>
+#include <CZ/XDG/XDGIconDirectory.h>
+#include <CZ/XDG/XDGIcon.h>
+#include <CZ/XDG/XDGKit.h>
 #include <unordered_set>
 
-using namespace XDG;
+using namespace CZ;
 
 std::filesystem::path XDGIconDirectory::dir() const noexcept
 {

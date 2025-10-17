@@ -1,8 +1,8 @@
 #ifndef XDGICONTHEMEMANAGER_H
 #define XDGICONTHEMEMANAGER_H
 
-#include <XDGKit/XDGIconTheme.h>
-#include <XDGKit/XDGMap.h>
+#include <CZ/XDG/XDGIconTheme.h>
+#include <CZ/XDG/XDGMap.h>
 #include <unordered_set>
 #include <filesystem>
 #include <vector>
@@ -10,7 +10,7 @@
 /**
  * @brief Utility for finding icons.
  */
-class XDG::XDGIconThemeManager
+class CZ::XDGIconThemeManager
 {
 public:
 

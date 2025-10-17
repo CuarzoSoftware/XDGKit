@@ -1,13 +1,13 @@
-#include <XDGKit/XDGUtils.h>
-#include <XDGKit/XDGLog.h>
-#include <XDGKit/XDGINI.h>
+#include <CZ/XDG/XDGUtils.h>
+#include <CZ/XDG/XDGLog.h>
+#include <CZ/XDG/XDGINI.h>
 #include <cassert>
 #include <cstring>
 #include <fstream>
 #include <sys/mman.h>
 #include <unistd.h>
 
-using namespace XDG;
+using namespace CZ;
 
 std::shared_ptr<XDGINI> XDGINI::LoadFile(const std::filesystem::path &iniFile) noexcept
 {
@@ -79,7 +79,7 @@ static char *copyAndAdvanceDst(void *dst, const void *src, size_t bytes) noexcep
     return ((char*)dst) + bytes;
 }
 
-std::shared_ptr<XDG::XDGINIView> XDGINIView::LoadFile(const std::filesystem::path &iniFile) noexcept
+std::shared_ptr<CZ::XDGINIView> XDGINIView::LoadFile(const std::filesystem::path &iniFile) noexcept
 {
     // FORMAT
     //
@@ -220,7 +220,7 @@ std::shared_ptr<XDGINIView> XDGINIView::FromData(char *pos, size_t size) noexcep
 
     return std::shared_ptr<XDGINIView>(data);
 fail:
-    XDGLog::error("[XDGINIView::FromData] Failed to parse serialized INI file (size = %zu): %s", size, error);
+    XDGLog(CZError, CZLN, "Failed to parse serialized INI file (size = {}): {}", size, error);
     data->clear();
     return std::shared_ptr<XDGINIView>(data);
 }

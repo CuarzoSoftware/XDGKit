@@ -1,8 +1,8 @@
-#include <XDGKit/XDGKit.h>
+#include <CZ/XDG/XDGKit.h>
 #include <iostream>
 #include <fstream>
 
-using namespace XDG;
+using namespace CZ;
 
 static const std::vector<int> testSizes { 16, 32, 48, 64, 96, 128, 256, 512 };
 static const std::vector<int> testExtensions { XDGIcon::SVG, XDGIcon::PNG  };

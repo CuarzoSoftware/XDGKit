@@ -1,7 +1,7 @@
-#include <XDGKit/XDGUtils.h>
+#include <CZ/XDG/XDGUtils.h>
 #include <sstream>
 
-using namespace XDG;
+using namespace CZ;
 
 std::vector<std::string> XDGUtils::splitString(const std::string &input, char delimiter, bool trim) noexcept
 {

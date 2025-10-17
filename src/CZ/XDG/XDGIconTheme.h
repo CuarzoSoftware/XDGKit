@@ -1,8 +1,8 @@
 #ifndef XDGICONTHEME_H
 #define XDGICONTHEME_H
 
-#include <XDGKit/XDGIconDirectory.h>
-#include <XDGKit/XDGINI.h>
+#include <CZ/XDG/XDGIconDirectory.h>
+#include <CZ/XDG/XDGINI.h>
 #include <filesystem>
 #include <list>
 #include <string>
@@ -17,7 +17,7 @@
  * Icon themes are loaded lazily. The loading typically occurs whenever `XDGIconThemeManager::findIcon()`
  * attempts to access `iconDirectories()` or `scaledIconDirectories()` for the first time.
  */
-class XDG::XDGIconTheme
+class CZ::XDGIconTheme
 {
 public:
     XDGIconTheme(XDGKit &kit) noexcept;
