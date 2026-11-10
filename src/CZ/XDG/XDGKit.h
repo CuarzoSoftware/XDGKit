@@ -2,6 +2,7 @@
 #define XDGKIT_H
 
 #include <CZ/XDG/XDGIconThemeManager.h>
+#include <CZ/XDG/XDGMimeDatabase.h>
 #include <filesystem>
 #include <memory>
 #include <unordered_set>
@@ -110,6 +111,11 @@ public:
      */
     std::shared_ptr<const XDGDesktopEntry> desktopEntry(const std::string &appId) noexcept;
 
+    /**
+     * @brief File types and their default applications (loaded on first use).
+     */
+    XDGMimeDatabase &mimeDatabase() noexcept { return m_mimeDatabase; }
+
 private:
     friend class XDGIconDirectory;
     friend class XDGIconThemeManager;
@@ -135,6 +141,7 @@ private:
     std::vector<std::filesystem::path> m_dataDirs;
     std::unordered_set<std::string> m_stringPool;
     std::unordered_map<std::string, std::shared_ptr<const XDGDesktopEntry>> m_desktopEntries;
+    XDGMimeDatabase m_mimeDatabase { *this };
 };
 
 #endif // XDGKIT_H

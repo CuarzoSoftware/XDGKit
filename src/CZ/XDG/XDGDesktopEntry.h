@@ -30,6 +30,8 @@ public:
     std::string icon;       ///< Icon (theme icon name or absolute path)
     std::string exec;       ///< Raw Exec value
     bool dbusActivatable { false };
+    bool noDisplay { false };           ///< NoDisplay: hidden from menus, but still usable to open files
+    std::vector<std::string> mimeTypes; ///< MimeType: types the app can open
     std::vector<Action> actions;
 
     /**
@@ -52,7 +54,23 @@ public:
      *
      * @return true if the process was spawned.
      */
-    bool launch(const std::string &exec) const noexcept;
+    bool launch(const std::string &exec) const noexcept { return launch(exec, {}); }
+
+    /**
+     * @brief Launches @p exec passing it @p files (absolute paths), detached.
+     *
+     * %F / %U receive every file; %f / %u a single one, so the app is launched once per file. If
+     * the Exec value takes no files they're not passed.
+     *
+     * @return true if (every) process was spawned.
+     */
+    bool launch(const std::string &exec, const std::vector<std::filesystem::path> &files) const noexcept;
+
+    /// Opens @p files with the application (its Exec key). See launch().
+    bool open(const std::vector<std::filesystem::path> &files) const noexcept { return launch(exec, files); }
+
+    /// Whether the app declares it can open @p mimeType (exactly, no subclasses).
+    bool supportsMimeType(const std::string &mimeType) const noexcept;
 };
 
 #endif // XDGDESKTOPENTRY_H

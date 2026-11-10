@@ -188,62 +188,39 @@ const XDGIcon *XDGIconThemeManager::findIconHelper(Search &search, std::shared_p
 
     search.visitedThemes.emplace(theme);
 
-    int32_t distance;
+    // Icon theme spec (LookupIcon): an icon in a directory matching the size, else the closest one
+    // in this theme, before looking at the parent themes. SVGs get no special treatment: a theme's
+    // small fixed-size SVGs are often simplified variants (e.g. line art at 16-24 px).
+    const XDGIcon *closest { nullptr };
+    int32_t closestDistance { std::numeric_limits<int32_t>::max() };
 
-    for (const auto &dir : theme->scaledIconDirectories())
+    for (const auto *dirs : { &theme->scaledIconDirectories(), &theme->iconDirectories() })
     {
-        if ((dir.context() & search.contexts) == 0)
-            continue;
-
-        const auto &icon = dir.icons().find(search.icon);
-
-        if (icon == dir.icons().end() || (icon->second.extensions() & search.extensions) == 0)
-            continue;
-
-        if ((icon->second.extensions() & search.extensions & XDGIcon::SVG) != 0)
-            return &icon->second;
-
-        distance = directorySizeDistance(search, dir);
-
-        if (distance < search.bestDistance)
+        for (const auto &dir : *dirs)
         {
-            search.bestDistance = distance;
-            search.bestIcon = &icon->second;
+            if ((dir.context() & search.contexts) == 0)
+                continue;
+
+            const auto &icon = dir.icons().find(search.icon);
+
+            if (icon == dir.icons().end() || (icon->second.extensions() & search.extensions) == 0)
+                continue;
+
+            if (directoryMatchesSize(search, dir))
+                return &icon->second;
+
+            const int32_t distance { directorySizeDistance(search, dir) };
+
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closest = &icon->second;
+            }
         }
-
-        if (!directoryMatchesSize(search, dir))
-            continue;
-
-        return &icon->second;
     }
 
-    for (const auto &dir : theme->iconDirectories())
-    {
-        if ((dir.context() & search.contexts) == 0)
-            continue;
-
-        const auto &icon = dir.icons().find(search.icon);
-
-        if (icon == dir.icons().end() || (icon->second.extensions() & search.extensions) == 0)
-            continue;
-
-        if ((icon->second.extensions() & search.extensions & XDGIcon::SVG) != 0)
-            return &icon->second;
-
-        distance = directorySizeDistance(search, dir);
-
-        if (distance < search.bestDistance)
-        {
-            search.bestDistance = distance;
-            search.bestIcon = &icon->second;
-        }
-
-        if (!directoryMatchesSize(search, dir))
-            continue;
-
-        return &icon->second;
-    }
-
+    if (closest)
+        return closest;
 
     const XDGIcon *found { nullptr };
     for (const auto &parentIt : theme->inherits())
@@ -281,13 +258,17 @@ int32_t XDGIconThemeManager::directorySizeDistance(Search &search, const XDGIcon
             return dir.minSize() * dir.scale() - search.bufferSize;
         else if (search.bufferSize > dir.maxSize() * dir.scale())
             return search.bufferSize - dir.maxSize() * dir.scale();
+
+        return 0;
     }
     else if (dir.sizeType() == XDGIconDirectory::SizeType::Threshold)
     {
         if (search.bufferSize < (dir.size() - dir.threshold()) * dir.scale())
             return (dir.size() - dir.threshold()) * dir.scale() - search.bufferSize;
-        else if (search.bufferSize > (dir.maxSize() + dir.threshold()) * dir.scale())
-            return search.bufferSize - (dir.maxSize() + dir.threshold()) * dir.scale();
+        else if (search.bufferSize > (dir.size() + dir.threshold()) * dir.scale())
+            return search.bufferSize - (dir.size() + dir.threshold()) * dir.scale();
+
+        return 0;
     }
 
     return std::numeric_limits<int32_t>::max() - 1;

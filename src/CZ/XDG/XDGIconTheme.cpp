@@ -139,6 +139,11 @@ void XDGIconTheme::initIconsDir(const std::vector<std::string> &iconDirs, XDGIco
             if (std::filesystem::is_directory(themeDir / iconDir))
             {
                 auto &newIconDir = iconsDirVec->emplace_back(IcD);
+
+                // Its own copy of the properties: IcD's cache is reused (overwritten) for the next
+                // directory, so sharing it would give every directory the last one's size/type.
+                newIconDir.m_ramCache = std::make_shared<XDGIconDirectory::Cache>(*IcD.m_cachePtr);
+                newIconDir.m_cachePtr = newIconDir.m_ramCache.get();
                 newIconDir.m_themeDir = kit().saveOrGetString(themeDir.string());
                 newIconDir.m_dirName = kit().saveOrGetString(iconDir);
                 newIconDir.initIcons();

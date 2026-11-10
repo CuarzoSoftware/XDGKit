@@ -100,6 +100,8 @@ std::shared_ptr<XDGDesktopEntry> XDGDesktopEntry::Load(const fs::path &file) noe
     entry->icon = Value(main->second, "Icon");
     entry->exec = Value(main->second, "Exec");
     entry->dbusActivatable = Value(main->second, "DBusActivatable") == "true";
+    entry->noDisplay = Value(main->second, "NoDisplay") == "true";
+    entry->mimeTypes = SplitList(Value(main->second, "MimeType"));
 
     for (const auto &id : SplitList(Value(main->second, "Actions")))
     {
@@ -163,7 +165,7 @@ std::shared_ptr<const XDGDesktopEntry> XDGKit::desktopEntry(const std::string &a
 }
 
 // Splits an Exec value into arguments (Desktop Entry spec quoting rules) and expands field codes.
-static std::vector<std::string> ExecArgs(const XDGDesktopEntry &entry, const std::string &exec) noexcept
+static std::vector<std::string> ExecArgs(const XDGDesktopEntry &entry, const std::string &exec, const std::vector<fs::path> &files) noexcept
 {
     std::vector<std::string> args;
     std::string cur;
@@ -206,6 +208,14 @@ static std::vector<std::string> ExecArgs(const XDGDesktopEntry &entry, const std
     {
         if (arg == "%i") { if (!entry.icon.empty()) { out.emplace_back("--icon"); out.emplace_back(entry.icon); } continue; }
 
+        // A list of files is only allowed as a standalone argument.
+        if (arg == "%F" || arg == "%U")
+        {
+            for (const auto &file : files)
+                out.emplace_back(file.string());
+            continue;
+        }
+
         std::string expanded;
         bool drop { false };
 
@@ -218,8 +228,13 @@ static std::vector<std::string> ExecArgs(const XDGDesktopEntry &entry, const std
             case '%': expanded += '%'; break;
             case 'c': expanded += entry.name; break;
             case 'k': expanded += entry.path.string(); break;
-            // No files/URLs are passed: an argument consisting only of these is removed.
-            case 'f': case 'F': case 'u': case 'U': if (arg.size() == 2) drop = true; break;
+            // A single file (the caller passes at most one, see launch()). Without files, an
+            // argument consisting only of the code is removed.
+            case 'f': case 'u':
+                if (!files.empty()) expanded += files.front().string();
+                else if (arg.size() == 2) drop = true;
+                break;
+            case 'F': case 'U': if (arg.size() == 2) drop = true; break;
             default: break; // Deprecated / unknown codes are removed
             }
         }
@@ -231,9 +246,52 @@ static std::vector<std::string> ExecArgs(const XDGDesktopEntry &entry, const std
     return out;
 }
 
-bool XDGDesktopEntry::launch(const std::string &exec) const noexcept
+bool XDGDesktopEntry::supportsMimeType(const std::string &mimeType) const noexcept
 {
-    const auto args { ExecArgs(*this, exec) };
+    return std::find(mimeTypes.begin(), mimeTypes.end(), mimeType) != mimeTypes.end();
+}
+
+// Whether an Exec value takes a single file (%f / %u) rather than a list (or none).
+static bool TakesSingleFile(const std::string &exec) noexcept
+{
+    for (size_t i = 0; i + 1 < exec.size(); i++)
+    {
+        if (exec[i] != '%')
+            continue;
+
+        const char code { exec[++i] };
+
+        if (code == 'F' || code == 'U')
+            return false;
+
+        if (code == 'f' || code == 'u')
+            return true;
+    }
+
+    return false;
+}
+
+static bool Spawn(const XDGDesktopEntry &entry, const std::string &exec, const std::vector<fs::path> &files) noexcept;
+
+bool XDGDesktopEntry::launch(const std::string &exec, const std::vector<fs::path> &files) const noexcept
+{
+    // One instance per file for apps that take a single one.
+    if (files.size() > 1 && TakesSingleFile(exec))
+    {
+        bool ok { true };
+
+        for (const auto &file : files)
+            ok = Spawn(*this, exec, { file }) && ok;
+
+        return ok;
+    }
+
+    return Spawn(*this, exec, files);
+}
+
+static bool Spawn(const XDGDesktopEntry &entry, const std::string &exec, const std::vector<fs::path> &files) noexcept
+{
+    const auto args { ExecArgs(entry, exec, files) };
 
     if (args.empty())
         return false;
@@ -243,7 +301,7 @@ bool XDGDesktopEntry::launch(const std::string &exec) const noexcept
     for (const auto &a : args) argv.push_back(const_cast<char*>(a.c_str()));
     argv.push_back(nullptr);
 
-    XDGLog(CZDebug, CZLN, "Launching {}: {}", id, exec);
+    XDGLog(CZDebug, CZLN, "Launching {}: {}", entry.id, exec);
 
     const pid_t child { fork() };
 

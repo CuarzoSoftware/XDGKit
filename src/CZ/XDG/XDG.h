@@ -11,6 +11,8 @@ namespace CZ
     class XDGINI;
     class XDGINIView;
     class XDGDesktopEntry;
+    class XDGMimeDatabase;
+    class XDGTrash;
 };
 
 #endif
