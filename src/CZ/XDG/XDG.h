@@ -10,6 +10,7 @@ namespace CZ
     class XDGIcon;
     class XDGINI;
     class XDGINIView;
+    class XDGDesktopEntry;
 };
 
 #endif

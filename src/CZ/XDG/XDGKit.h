@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <memory>
 #include <unordered_set>
+#include <unordered_map>
+#include <memory>
 #include <vector>
 
 /**
@@ -97,6 +99,17 @@ public:
         return m_options;
     }
 
+    /**
+     * @brief Finds the desktop entry (.desktop file) of an application.
+     *
+     * Looks for `<appId>.desktop` (and its lowercase variant, which covers most X11 WM_CLASS based
+     * ids) in `$XDG_DATA_HOME/applications` and every `$XDG_DATA_DIRS/applications`. Results,
+     * including misses, are cached.
+     *
+     * @return The entry, or nullptr if none was found.
+     */
+    std::shared_ptr<const XDGDesktopEntry> desktopEntry(const std::string &appId) noexcept;
+
 private:
     friend class XDGIconDirectory;
     friend class XDGIconThemeManager;
@@ -121,6 +134,7 @@ private:
     std::filesystem::path m_homeDir;
     std::vector<std::filesystem::path> m_dataDirs;
     std::unordered_set<std::string> m_stringPool;
+    std::unordered_map<std::string, std::shared_ptr<const XDGDesktopEntry>> m_desktopEntries;
 };
 
 #endif // XDGKIT_H
