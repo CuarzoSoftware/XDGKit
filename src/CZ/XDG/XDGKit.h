@@ -111,6 +111,9 @@ public:
      */
     std::shared_ptr<const XDGDesktopEntry> desktopEntry(const std::string &appId) noexcept;
 
+    /// Drops the cached result of desktopEntry() for @p appId (e.g. its file was just installed).
+    void forgetDesktopEntry(const std::string &appId) noexcept { m_desktopEntries.erase(appId); }
+
     /**
      * @brief File types and their default applications (loaded on first use).
      */
