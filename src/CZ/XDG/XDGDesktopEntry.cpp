@@ -2,6 +2,7 @@
 #include <CZ/XDG/XDGINI.h>
 #include <CZ/XDG/XDGKit.h>
 #include <CZ/XDG/XDGLog.h>
+#include <CZ/Core/Utils/CZProcess.h>
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
@@ -291,33 +292,13 @@ bool XDGDesktopEntry::launch(const std::string &exec, const std::vector<fs::path
 
 static bool Spawn(const XDGDesktopEntry &entry, const std::string &exec, const std::vector<fs::path> &files) noexcept
 {
-    const auto args { ExecArgs(entry, exec, files) };
+    auto args { ExecArgs(entry, exec, files) };
 
     if (args.empty())
         return false;
 
-    // Prepared before forking: only async-signal-safe calls happen in the child.
-    std::vector<char*> argv;
-    for (const auto &a : args) argv.push_back(const_cast<char*>(a.c_str()));
-    argv.push_back(nullptr);
-
     XDGLog(CZDebug, CZLN, "Launching {}: {}", entry.id, exec);
 
-    const pid_t child { fork() };
-
-    if (child < 0)
-        return false;
-
-    if (child == 0)
-    {
-        // Double fork so the app is reparented to init and never becomes the caller's zombie.
-        setsid();
-        if (fork() != 0) _exit(0);
-        syscall(SYS_close_range, 3, ~0U, 0);
-        execvp(argv[0], argv.data());
-        _exit(127);
-    }
-
-    waitpid(child, nullptr, 0);
-    return true;
+    // Started from a background thread: never blocks the caller (e.g. a dock)
+    return CZProcess::SpawnDetached(std::move(args));
 }
