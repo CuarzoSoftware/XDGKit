@@ -203,6 +203,10 @@ private:
     std::string_view m_example;
     mutable std::vector<std::string> m_inherits;
     mutable std::vector<std::filesystem::path> m_dirs;
+
+    // Dirs of the theme the cache doesn't cover (e.g. ~/.local/share/icons/hicolor, which has no
+    // index.theme, so the theme uses the system index and cache): scanned on first use
+    mutable std::vector<std::filesystem::path> m_uncachedDirs;
     mutable std::filesystem::path m_indexFilePath;
     mutable XDGINIView m_indexData;
     mutable std::vector<std::string> m_iconDirNames, m_scaledIconDirNames;

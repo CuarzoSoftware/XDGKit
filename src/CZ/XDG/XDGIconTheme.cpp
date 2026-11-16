@@ -2,6 +2,7 @@
 #include <CZ/XDG/XDGLog.h>
 #include <CZ/XDG/XDGKit.h>
 #include <CZ/XDG/XDGIconTheme.h>
+#include <unordered_set>
 #include <CZ/XDG/XDGIconDirectory.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -42,11 +43,16 @@ void XDGIconTheme::initAllIconsDir() const noexcept
     m_iconDirNames.shrink_to_fit();
     m_scaledIconDirNames.shrink_to_fit();
     m_dirs.shrink_to_fit();
+    m_uncachedDirs.clear();
+    m_uncachedDirs.shrink_to_fit();
 }
 
 void XDGIconTheme::initIconsDir(const std::vector<std::string> &iconDirs, XDGIconDirectory::Type type) const noexcept
 {
-    if (usingCache())
+    // With a cache, only the dirs it doesn't cover are scanned
+    const auto &themeDirs { usingCache() ? m_uncachedDirs : m_dirs };
+
+    if (themeDirs.empty())
         return;
 
     auto *iconsDirVec { type == XDGIconDirectory::Type::Scaled ? &m_scaledIconDirectories : &m_iconDirectories };
@@ -134,7 +140,7 @@ void XDGIconTheme::initIconsDir(const std::vector<std::string> &iconDirs, XDGIco
             if (IcD.m_cachePtr->threshold < 0) IcD.m_cachePtr->threshold = 2;
         }
 
-        for (const auto &themeDir : dirs())
+        for (const auto &themeDir : themeDirs)
         {
             if (std::filesystem::is_directory(themeDir / iconDir))
             {
@@ -318,11 +324,11 @@ void XDGIconTheme::loadCache() noexcept
             goto failParse;
         }
 
-        // Store pointers
+        // Store pointers (boolean: is a scaled dir)
         if (boolean)
-            dirList = &m_iconDirectories;
-        else
             dirList = &m_scaledIconDirectories;
+        else
+            dirList = &m_iconDirectories;
 
         auto &dir { dirList->emplace_back(*this) };
         dir.m_cachePtr = cache;
@@ -358,6 +364,31 @@ void XDGIconTheme::loadCache() noexcept
             icon.first->second.m_name = iconName;
             icon.first->second.m_extensions = u32;
         }
+
+        // A system cache never covers a user's dirs (older indexers stored them, possibly empty):
+        // they're scanned on first use instead, see below
+        if (!isUser && std::string_view(themeDir).starts_with("/home/"))
+            dirList->pop_back();
+    }
+
+    // The cache only has the dirs the indexer saw. A theme can also be in dirs it didn't (e.g.
+    // hicolor in ~/.local/share/icons without an index.theme, which uses the system cache, or
+    // flatpak exports): those are scanned on first use (see initAllIconsDir()).
+    {
+        std::unordered_set<std::string_view> cachedDirs;
+
+        for (const auto *list : { &m_iconDirectories, &m_scaledIconDirectories })
+            for (const auto &dir : *list)
+                cachedDirs.emplace(dir.m_themeDir);
+
+        m_uncachedDirs.clear();
+
+        for (const auto &themeDir : m_dirs)
+            if (!cachedDirs.contains(themeDir.native()))
+                m_uncachedDirs.emplace_back(themeDir);
+
+        if (!m_uncachedDirs.empty())
+            m_initialized = false;
     }
 
     return;

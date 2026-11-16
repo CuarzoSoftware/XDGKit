@@ -138,7 +138,10 @@ public:
     XDGIconTheme &theme() const noexcept { return m_theme; };
 
     /**
-     * @brief Indicates whether the parent theme was loaded from cache.
+     * @brief Indicates whether this directory was loaded from its theme's cache.
+     *
+     * False for directories scanned at runtime, including those of a cached theme that its cache
+     * doesn't cover (e.g. the theme also exists in a user's home).
      */
     bool usingCache() const noexcept;
 

@@ -1,6 +1,10 @@
 #include <CZ/XDG/XDGKit.h>
+#include <CZ/XDG/XDGIconTheme.h>
+#include <CZ/XDG/XDGIconDirectory.h>
+#include <list>
 #include <cassert>
 #include <iostream>
+#include <algorithm>
 #include <fstream>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -120,71 +124,57 @@ static void saveCache(const std::string &username)
             // Serialized index.theme data
             file.write((const char*)theme.second->indexData().map(), u64);
 
+            // The system cache only covers system dirs: dirs in users' homes (e.g. hicolor in
+            // ~/.local/share/icons, found through the environment sudo keeps) are scanned by each
+            // app at runtime
+            const auto included = [isSystem](const XDGIconDirectory &dir)
+            {
+                return !isSystem || !dir.themeDir().starts_with("/home/");
+            };
+
+            const auto writeDirs = [&](const std::list<XDGIconDirectory> &dirs, bool scaled)
+            {
+                for (const auto &dir : dirs)
+                {
+                    if (!included(dir))
+                        continue;
+
+                    // Is Scaled
+                    boolean = scaled;
+                    file.write((const char*)&boolean, sizeof(boolean));
+
+                    // Cache data (size, minSize, etc)
+                    file.write((const char*)dir.data(), sizeof(*dir.data()));
+
+                    // Theme dir
+                    file.write((const char*)dir.themeDir().data(), dir.themeDir().size() + 1);
+
+                    // Dir name
+                    file.write((const char*)dir.dirName().data(), dir.dirName().size() + 1);
+
+                    // Icons num
+                    u64 = dir.icons().size();
+                    file.write((const char*)&u64, sizeof(u64));
+
+                    for (const auto &icon : dir.icons())
+                    {
+                        // Icon name
+                        file.write((const char*)icon.first.data(), icon.first.size() + 1);
+
+                        // Extensions
+                        u32 = icon.second.extensions();
+                        file.write((const char*)&u32, sizeof(u32));
+                    }
+                }
+            };
+
             // Directories num
-            u64 = theme.second->iconDirectories().size() + theme.second->scaledIconDirectories().size();
+            u64 = std::count_if(theme.second->iconDirectories().begin(), theme.second->iconDirectories().end(), included) +
+                  std::count_if(theme.second->scaledIconDirectories().begin(), theme.second->scaledIconDirectories().end(), included);
             file.write((const char*)&u64, sizeof(u64));
 
-            // Unscaled dirs
-            boolean = false;
-            for (const auto &dir : theme.second->iconDirectories())
-            {
-                // Is Scaled
-                file.write((const char*)&boolean, sizeof(boolean));
-
-                // Cache data (size, minSize, etc)
-                file.write((const char*)dir.data(), sizeof(*dir.data()));
-
-                // Theme dir
-                file.write((const char*)dir.themeDir().data(), dir.themeDir().size() + 1);
-
-                // Dir name
-                file.write((const char*)dir.dirName().data(), dir.dirName().size() + 1);
-
-                // Icons num
-                u64 = dir.icons().size();
-                file.write((const char*)&u64, sizeof(u64));
-
-                for (const auto &icon : dir.icons())
-                {
-                    // Icon name
-                    file.write((const char*)icon.first.data(), icon.first.size() + 1);
-
-                    // Extensions
-                    u32 = icon.second.extensions();
-                    file.write((const char*)&u32, sizeof(u32));
-                }
-            }
-
-            // Scaled dirs
-            boolean = true;
-            for (const auto &dir : theme.second->iconDirectories())
-            {
-                // Is Scaled
-                file.write((const char*)&boolean, sizeof(boolean));
-
-                // Cache data (size, minSize, etc)
-                file.write((const char*)dir.data(), sizeof(*dir.data()));
-
-                // Theme dir
-                file.write((const char*)dir.themeDir().data(), dir.themeDir().size() + 1);
-
-                // Dir name
-                file.write((const char*)dir.dirName().data(), dir.dirName().size() + 1);
-
-                // Icons num
-                u64 = dir.icons().size();
-                file.write((const char*)&u64, sizeof(u64));
-
-                for (const auto &icon : dir.icons())
-                {
-                    // Icon name
-                    file.write((const char*)icon.first.data(), icon.first.size() + 1);
-
-                    // Extensions
-                    u32 = icon.second.extensions();
-                    file.write((const char*)&u32, sizeof(u32));
-                }
-            }
+            writeDirs(theme.second->iconDirectories(), false);
+            writeDirs(theme.second->scaledIconDirectories(), true);
 
             file.close();
 

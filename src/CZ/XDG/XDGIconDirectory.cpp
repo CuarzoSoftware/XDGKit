@@ -12,7 +12,8 @@ std::filesystem::path XDGIconDirectory::dir() const noexcept
 
 bool XDGIconDirectory::usingCache() const noexcept
 {
-    return theme().usingCache();
+    // Dirs scanned at runtime (e.g. those a theme's cache doesn't cover) have their own RAM copy
+    return !m_ramCache && theme().usingCache();
 }
 
 XDGKit &XDGIconDirectory::kit() const noexcept
