@@ -5,6 +5,7 @@
 #include <CZ/XDG/XDGINI.h>
 #include <filesystem>
 #include <list>
+#include <string_view>
 #include <string>
 #include <vector>
 
@@ -168,6 +169,15 @@ public:
      * @brief Indicates whether the theme was loaded from cache.
      */
     bool usingCache() const noexcept { return m_usingCache; }
+
+    /**
+     * @brief First bytes of a v2 cache file (written by the indexer).
+     *
+     * v2 stores each directory's icons sorted by name, with an offset table, so they're looked up in
+     * the mapped file instead of being loaded into memory. A v1 file starts with the theme name
+     * (never empty), so the leading NUL tells them apart.
+     */
+    static constexpr std::string_view CacheMagicV2 { "\0XDGKIT2", 8 };
 
     /**
      * @brief Suggests to the OS to evict the mapped cache file from memory.

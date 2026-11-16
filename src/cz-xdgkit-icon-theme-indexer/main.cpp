@@ -2,6 +2,8 @@
 #include <CZ/XDG/XDGIconTheme.h>
 #include <CZ/XDG/XDGIconDirectory.h>
 #include <list>
+#include <vector>
+#include <string>
 #include <cassert>
 #include <iostream>
 #include <algorithm>
@@ -10,8 +12,9 @@
 #include <sys/stat.h>
 #include <pwd.h>
 
-/* THEME CACHE FORMAT
+/* THEME CACHE FORMAT (v2, see XDGIconTheme::CacheMagicV2)
 
+u8[8]: "\0XDGKIT2"
 str: theme name
 u64: serialized index.theme size
 str: serialized index.theme data
@@ -31,9 +34,15 @@ FOREACH DIR:
     str: theme dir
     str: dir name
     u64: icons num
-    FOREACH ICON:
+    u64: records size (bytes)
+    u64: offset of the dir's block in the data section
+DATA SECTION (after the last dir), FOREACH DIR (block):
+    u32[icons num]: offset of each record in the records, in name order (strcmp)
+    FOREACH ICON (record):
         str: icon name
         u32: extensions
+
+v1 (no magic): the icons follow "icons num" directly (str name, u32 extensions), unsorted.
 */
 
 /* CACHE DIRS
@@ -114,6 +123,9 @@ static void saveCache(const std::string &username)
 
             file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 
+            // v2 (icons sorted, looked up in the mapped file)
+            file.write(XDGIconTheme::CacheMagicV2.data(), XDGIconTheme::CacheMagicV2.size());
+
             // Theme name
             file.write(theme.first.c_str(), theme.first.size() + 1);
 
@@ -131,6 +143,10 @@ static void saveCache(const std::string &username)
             {
                 return !isSystem || !dir.themeDir().starts_with("/home/");
             };
+
+            // Offsets tables and records of every dir, written after all the dir headers (so loading
+            // the cache only touches the headers' pages)
+            std::string data;
 
             const auto writeDirs = [&](const std::list<XDGIconDirectory> &dirs, bool scaled)
             {
@@ -152,18 +168,43 @@ static void saveCache(const std::string &username)
                     // Dir name
                     file.write((const char*)dir.dirName().data(), dir.dirName().size() + 1);
 
-                    // Icons num
-                    u64 = dir.icons().size();
-                    file.write((const char*)&u64, sizeof(u64));
+                    // Icons, sorted by name (binary searched by XDGIconDirectory::findIcon())
+                    std::vector<std::pair<std::string_view, uint32_t>> icons;
+                    icons.reserve(dir.icons().size());
 
                     for (const auto &icon : dir.icons())
-                    {
-                        // Icon name
-                        file.write((const char*)icon.first.data(), icon.first.size() + 1);
+                        icons.emplace_back(icon.first, icon.second.extensions());
 
-                        // Extensions
-                        u32 = icon.second.extensions();
-                        file.write((const char*)&u32, sizeof(u32));
+                    std::sort(icons.begin(), icons.end(), [](const auto &a, const auto &b){ return a.first < b.first; });
+
+                    // Icons num
+                    u64 = icons.size();
+                    file.write((const char*)&u64, sizeof(u64));
+
+                    // Records size and where its block starts in the data section. The block: the
+                    // offset of each record (u32), then the records: name (NUL terminated), extensions (u32)
+                    uint64_t recordsSize { 0 };
+                    std::vector<uint32_t> offsets;
+                    offsets.reserve(icons.size());
+
+                    for (const auto &icon : icons)
+                    {
+                        offsets.emplace_back(uint32_t(recordsSize));
+                        recordsSize += icon.first.size() + 1 + sizeof(uint32_t);
+                    }
+
+                    file.write((const char*)&recordsSize, sizeof(recordsSize));
+                    u64 = data.size();
+                    file.write((const char*)&u64, sizeof(u64));
+
+                    data.append((const char*)offsets.data(), offsets.size() * sizeof(uint32_t));
+
+                    for (const auto &icon : icons)
+                    {
+                        data.append(icon.first);
+                        data.push_back('\0');
+                        u32 = icon.second;
+                        data.append((const char*)&u32, sizeof(u32));
                     }
                 }
             };
@@ -175,6 +216,9 @@ static void saveCache(const std::string &username)
 
             writeDirs(theme.second->iconDirectories(), false);
             writeDirs(theme.second->scaledIconDirectories(), true);
+
+            // Data section
+            file.write(data.data(), data.size());
 
             file.close();
 

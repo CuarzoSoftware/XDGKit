@@ -126,9 +126,19 @@ public:
     /**
      * @brief Retrieves the icons located in the directory.
      *
+     * @note With an icon theme cache, icons are looked up in the mapped cache (see findIcon()) and
+     *       this map is built on the first call: prefer findIcon() for lookups.
+     *
      * @return A constant reference to a map of icon names to their corresponding icon objects.
      */
-    const XDGMap<std::string_view, XDGIcon> &icons() const noexcept { return m_icons; }
+    const XDGMap<std::string_view, XDGIcon> &icons() const noexcept;
+
+    /**
+     * @brief The icon named @p name in this directory.
+     *
+     * @return The icon, or `nullptr` if the directory has no such icon. Valid while the theme is.
+     */
+    const XDGIcon *findIcon(std::string_view name) const noexcept;
 
     /**
      * @brief Retrieves the theme to which this directory belongs.
@@ -165,7 +175,17 @@ private:
     friend class XDGIconThemeManager;
     friend class XDGIconTheme;
     void initIcons() noexcept;
-    XDGMap<std::string_view, XDGIcon> m_icons;
+    const XDGIcon *cachedIconAt(uint64_t index) const noexcept;
+
+    // All the icons (scanned dirs, v1 caches), or those found so far (v2 caches, see findIcon())
+    mutable XDGMap<std::string_view, XDGIcon> m_icons;
+
+    // v2 caches: the icons of this dir in the mapped cache, sorted by name (see XDGIconTheme::loadCache())
+    const char *m_cacheOffsets { nullptr }; // u32 per icon: offset of its record in m_cacheRecords
+    const char *m_cacheRecords { nullptr }; // Records: name (NUL terminated), u32 extensions
+    uint64_t m_cacheRecordsSize { 0 };
+    uint64_t m_cacheIconCount { 0 };
+    mutable bool m_allIcons { true };       // Whether m_icons has every icon
     std::string_view m_themeDir;
     std::string_view m_dirName;
 

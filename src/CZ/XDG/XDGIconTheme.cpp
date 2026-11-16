@@ -3,6 +3,8 @@
 #include <CZ/XDG/XDGKit.h>
 #include <CZ/XDG/XDGIconTheme.h>
 #include <unordered_set>
+#include <cstring>
+#include <vector>
 #include <CZ/XDG/XDGIconDirectory.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -176,6 +178,10 @@ void XDGIconTheme::loadCache() noexcept
     char *pos, *end, *str, *themeDir, *dirName, *iconName;
     const char *error { "Unknown error." };
     bool boolean;
+    bool v2 { false };
+    uint64_t recordsSize, blockOffset, blockEnd;
+    struct Block { XDGIconDirectory *dir; uint64_t offset, size; };
+    std::vector<Block> blocks;
     std::list<XDGIconDirectory> *dirList;
     XDGIconDirectory::Cache *cache;
 
@@ -212,6 +218,14 @@ void XDGIconTheme::loadCache() noexcept
 
     pos = (char*)m_cacheMap;
     end = pos + m_cacheMapSize;
+
+    // v2: icons sorted by name, looked up in the mapped file (v1 caches, from older indexers, are
+    // loaded into hash maps)
+    if (m_cacheMapSize >= CacheMagicV2.size() && memcmp(pos, CacheMagicV2.data(), CacheMagicV2.size()) == 0)
+    {
+        v2 = true;
+        pos += CacheMagicV2.size();
+    }
 
     // Validate the name match
     str = pos;
@@ -342,6 +356,24 @@ void XDGIconTheme::loadCache() noexcept
             goto failParse;
         }
 
+        if (v2)
+        {
+            // Records size and the offset of the dir's block in the data section (see the indexer).
+            // The block is located once every dir header is read (the data section follows them).
+            if (!(pos = XDGUtils::readSafeAndAdvancePos(&recordsSize, pos, end, sizeof(recordsSize))) ||
+                !(pos = XDGUtils::readSafeAndAdvancePos(&blockOffset, pos, end, sizeof(blockOffset))))
+            {
+                error = "Failed to get the icon block of a directory.";
+                goto failParse;
+            }
+
+            dir.m_cacheIconCount = numIcons;
+            dir.m_cacheRecordsSize = recordsSize;
+            dir.m_allIcons = numIcons == 0;
+            blocks.push_back({ &dir, blockOffset, recordsSize });
+            numIcons = 0; // Nothing to load: looked up on demand (XDGIconDirectory::findIcon())
+        }
+
         for (uint64_t j = 0; j < numIcons; j++)
         {
             // Icon name
@@ -368,7 +400,30 @@ void XDGIconTheme::loadCache() noexcept
         // A system cache never covers a user's dirs (older indexers stored them, possibly empty):
         // they're scanned on first use instead, see below
         if (!isUser && std::string_view(themeDir).starts_with("/home/"))
+        {
+            if (v2)
+                blocks.pop_back();
+
             dirList->pop_back();
+        }
+    }
+
+    // v2: the data section follows the last dir header
+    for (const auto &block : blocks)
+    {
+        const uint64_t offsetsSize { block.dir->m_cacheIconCount * sizeof(uint32_t) };
+
+        if (block.dir->m_cacheIconCount > uint64_t(end - pos) / sizeof(uint32_t) ||
+            __builtin_add_overflow(block.offset, offsetsSize, &blockEnd) ||
+            __builtin_add_overflow(blockEnd, block.size, &blockEnd) ||
+            blockEnd > uint64_t(end - pos))
+        {
+            error = "An icon block is out of bounds.";
+            goto failParse;
+        }
+
+        block.dir->m_cacheOffsets = pos + block.offset;
+        block.dir->m_cacheRecords = pos + block.offset + offsetsSize;
     }
 
     // The cache only has the dirs the indexer saw. A theme can also be in dirs it didn't (e.g.
@@ -394,6 +449,7 @@ void XDGIconTheme::loadCache() noexcept
     return;
 failParse:
     m_iconDirectories.clear();
+    m_scaledIconDirectories.clear(); // They point into the mapped file
     m_indexData = {};
     munmap(m_cacheMap, m_cacheMapSize);
     m_cacheMap = nullptr;

@@ -2,6 +2,7 @@
 #include <CZ/XDG/XDGIcon.h>
 #include <CZ/XDG/XDGKit.h>
 #include <unordered_set>
+#include <cstring>
 
 using namespace CZ;
 
@@ -14,6 +15,81 @@ bool XDGIconDirectory::usingCache() const noexcept
 {
     // Dirs scanned at runtime (e.g. those a theme's cache doesn't cover) have their own RAM copy
     return !m_ramCache && theme().usingCache();
+}
+
+const XDGIcon *XDGIconDirectory::cachedIconAt(uint64_t index) const noexcept
+{
+    uint32_t offset;
+    memcpy(&offset, m_cacheOffsets + index * sizeof(uint32_t), sizeof(offset));
+
+    // Validated lazily: the name must be NUL terminated, followed by the extensions, in the block
+    if (offset >= m_cacheRecordsSize)
+        return nullptr;
+
+    const char *name { m_cacheRecords + offset };
+    const char *nul { static_cast<const char*>(memchr(name, '\0', m_cacheRecordsSize - offset)) };
+
+    if (!nul || uint64_t(nul + 1 + sizeof(uint32_t) - m_cacheRecords) > m_cacheRecordsSize)
+        return nullptr;
+
+    const std::string_view key { name, size_t(nul - name) };
+
+    if (auto it { m_icons.find(key) }; it != m_icons.end())
+        return &it->second;
+
+    auto &icon { m_icons.emplace(key, *const_cast<XDGIconDirectory*>(this)).first->second };
+    icon.m_name = key;
+    memcpy(&icon.m_extensions, nul + 1, sizeof(uint32_t));
+    return &icon;
+}
+
+const XDGIcon *XDGIconDirectory::findIcon(std::string_view name) const noexcept
+{
+    if (auto it { m_icons.find(name) }; it != m_icons.end())
+        return &it->second;
+
+    if (m_allIcons)
+        return nullptr;
+
+    // Binary search in the mapped cache (records sorted by name, see the indexer)
+    uint64_t lo { 0 }, hi { m_cacheIconCount };
+
+    while (lo < hi)
+    {
+        const uint64_t mid { lo + (hi - lo) / 2 };
+        uint32_t offset;
+        memcpy(&offset, m_cacheOffsets + mid * sizeof(uint32_t), sizeof(offset));
+
+        if (offset >= m_cacheRecordsSize)
+            return nullptr;
+
+        const char *candidate { m_cacheRecords + offset };
+        const size_t len { strnlen(candidate, m_cacheRecordsSize - offset) };
+        const int cmp { name.compare(std::string_view(candidate, len)) };
+
+        if (cmp == 0)
+            return cachedIconAt(mid);
+
+        if (cmp < 0)
+            hi = mid;
+        else
+            lo = mid + 1;
+    }
+
+    return nullptr;
+}
+
+const XDGMap<std::string_view, XDGIcon> &XDGIconDirectory::icons() const noexcept
+{
+    if (!m_allIcons)
+    {
+        for (uint64_t i = 0; i < m_cacheIconCount; i++)
+            cachedIconAt(i);
+
+        m_allIcons = true;
+    }
+
+    return m_icons;
 }
 
 XDGKit &XDGIconDirectory::kit() const noexcept

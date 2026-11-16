@@ -201,20 +201,20 @@ const XDGIcon *XDGIconThemeManager::findIconHelper(Search &search, std::shared_p
             if ((dir.context() & search.contexts) == 0)
                 continue;
 
-            const auto &icon = dir.icons().find(search.icon);
+            const XDGIcon *icon { dir.findIcon(search.icon) };
 
-            if (icon == dir.icons().end() || (icon->second.extensions() & search.extensions) == 0)
+            if (!icon || (icon->extensions() & search.extensions) == 0)
                 continue;
 
             if (directoryMatchesSize(search, dir))
-                return &icon->second;
+                return icon;
 
             const int32_t distance { directorySizeDistance(search, dir) };
 
             if (distance < closestDistance)
             {
                 closestDistance = distance;
-                closest = &icon->second;
+                closest = icon;
             }
         }
     }
