@@ -16,7 +16,7 @@
 class CZ::XDGDesktopEntry
 {
 public:
-    /// An "Additional application action" ([Desktop Action <id>] group listed in Actions=).
+    /// An "Additional application action" (`[Desktop Action <id>]` group listed in `Actions=`).
     struct Action
     {
         std::string id;
