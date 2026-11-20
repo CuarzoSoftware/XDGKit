@@ -9,6 +9,8 @@
   </a>
 </p>
 
+> This project is part of the [Cuarzo Framework](https://github.com/CuarzoSoftware/Cuarzo). Follow the instructions there to build and install it.
+
 XDGKit is a C++ library providing utilities for working with XDG standards.
 
 ### Features
